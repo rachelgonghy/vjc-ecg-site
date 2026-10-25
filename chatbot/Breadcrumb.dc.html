@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<nav aria-label="Breadcrumb" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-family:'Work Sans',sans-serif;font-size:13.5px;color:#4A3A31">
+  <sc-for list="{{ crumbs }}" as="c" hint-placeholder-count="2">
+    <sc-if value="{{ c.isLast }}" hint-placeholder-val="{{ false }}">
+      <span style="color:#241A15;font-weight:600">{{ c.title }}</span>
+      <span></span>
+    </sc-if>
+    <sc-if value="{{ c.notLast }}" hint-placeholder-val="{{ true }}">
+      <a href="{{ c.file }}" style="color:#4A3A31;text-decoration:none">{{ c.title }}</a>
+      <span style="color:#7A6A5E">/</span>
+    </sc-if>
+  </sc-for>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;activeKey&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { trail: [] };
+  async componentDidMount() {
+    const activeKey = this.props.activeKey || 'home';
+    const trail = this.buildTrail(activeKey);
+    this.setState({ trail });
+    try {
+      const linkMap = await this.fetchNavLinks();
+      this.setState({ trail: trail.map(c => ({ ...c, file: linkMap.get(c.title.toLowerCase()) || c.file })) });
+    } catch (e) { /* keep internal links on any fetch error */ }
+  }
+  titleize(key) {
+    return key.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
+  buildTrail(activeKey) {
+    const PAGES = [
+      {key:'home',title:'Home',file:'home.dc.html',parentKey:null},
+      {key:'meet-the-team',title:'Meet the Team',file:'meet-the-team.dc.html',parentKey:null},
+      {key:'opportunity-search-portal',title:'Opportunity Search Portal',file:'opportunity-search-portal.dc.html',parentKey:null},
+      {key:'overseas-education-portal',title:'Overseas Education Portal',file:'overseas-education-portal.dc.html',parentKey:null},
+      {key:'events-and-programmes',title:'Events & Programmes',file:'https://sites.google.com/vjc.edu.sg/ecgvjc/events-and-programmes',parentKey:null},
+      {key:'learning-journeys',title:'Learning Journeys',file:'learning-journeys.dc.html',parentKey:'events-and-programmes'},
+      {key:'edvantage-fair',title:'EdVantage! Fair',file:'edvantage-fair.dc.html',parentKey:'events-and-programmes'},
+      {key:'partner-organisations',title:'Partner Organisations',file:'partner-organisations.dc.html',parentKey:'edvantage-fair'},
+      {key:'talk-allocation-portal',title:'Talk Allocation Portal',file:'talk-allocation-portal.dc.html',parentKey:'edvantage-fair'},
+      {key:'interactive-map',title:'Interactive Map',file:'interactive-map.dc.html',parentKey:'edvantage-fair'},
+      {key:'local-university-panel-discussion',title:'Local University Panel Discussion',file:'local-university-panel-discussion.dc.html',parentKey:'events-and-programmes'},
+      {key:'project-edvantage',title:'Project EdVantage',file:'project-edvantage.dc.html',parentKey:'events-and-programmes'},
+      {key:'jc1-work-shadowing-programme',title:'JC1 Work Shadowing Programme',file:'jc1-work-shadowing-programme.dc.html',parentKey:'events-and-programmes'},
+      {key:'a-level-university-support',title:'A-Levels & University Applications',file:'a-level-university-support.dc.html',parentKey:null},
+      {key:'start-here-university-applications',title:'Get Started Here',file:'https://sites.google.com/vjc.edu.sg/ecgvjc/a-level-and-university-applications/get-started-here',parentKey:'a-level-university-support'},
+      {key:'sg-university-application',title:'Local University Applications',file:'sg-university-application-standalone.html',parentKey:'a-level-university-support',blurb:'Timelines and requirements for applying to Singapore universities.'},
+      {key:'international-university-application',title:'International University Applications',file:'international-university-application-standalone.html',parentKey:'a-level-university-support',blurb:'Application routes for universities in the UK, US, EU and Asia.'},
+      {key:'uk-university-application',title:'UK University Application',file:'uk-university-application.dc.html',parentKey:'a-level-university-support'},
+      {key:'us-university-application',title:'US University Application',file:'us-university-application.dc.html',parentKey:'a-level-university-support'},
+      {key:'eu-asia-university-application',title:'EU & Asia University Application',file:'eu-asia-university-application.dc.html',parentKey:'a-level-university-support'},
+      {key:'scholarship-information',title:'Scholarships & Interviews',file:'scholarship-information.dc.html',parentKey:null},
+      {key:'pre-u-scholarships',title:'Pre-U Scholarships',file:'pre-u-scholarships.dc.html',parentKey:'scholarship-information'},
+      {key:'undergraduate-scholarships',title:'Undergraduate Scholarships',file:'https://sites.google.com/vjc.edu.sg/ecgvjc/scholarships-and-interviews/undergraudate-scholarships',parentKey:'scholarship-information'},
+      {key:'scholarships-applications-forum',title:'Scholarships & Applications Forum',file:'scholarships-applications-forum.dc.html',parentKey:'scholarship-information'},
+      {key:'interview-prep',title:'Scholarship Interview Processes',file:'interview-prep.dc.html',parentKey:'scholarship-information'},
+      {key:'useful-resources',title:'Useful Resources',file:'useful-resources.dc.html',parentKey:null},
+      {key:'h2-degree-mapping-advisor',title:'H2 Degree Mapping Advisor',file:'h2-degree-mapping-advisor.dc.html',parentKey:'useful-resources'},
+      {key:'h2-subject-eligibility-advisor',title:'H2 Subject Eligibility Advisor',file:'h2-subject-eligibility-advisor.dc.html',parentKey:'useful-resources'},
+      {key:'rank-point-calculator',title:'Rank Points Calculator',file:'rank-point-calculator.dc.html',parentKey:'useful-resources'},
+      {key:'ecg-chatbot',title:'ECG Chatbot',file:'ecg-chatbot.dc.html',parentKey:null},
+      {key:'book-an-ecg-session',title:'Book an ECG Session',file:'book-an-ecg-session.dc.html',parentKey:null},
+    ];
+    const byKey = k => PAGES.find(p => p.key === k);
+    const trail = [];
+    let node = byKey(activeKey);
+    if (!node) return [{ key: activeKey, title: this.titleize(activeKey), file: activeKey + '.dc.html' }];
+    while (node) { trail.unshift(node); node = node.parentKey ? byKey(node.parentKey) : null; }
+    return trail;
+  }
+  async fetchNavLinks() {
+    const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTen3StJgYixVUyyyLv7GMUVm-0QaRLxEL_fXPSNPhqBFOcfJ9v0LOTJNV0y3U3gMb7uRZhNys5aRe-/pub?gid=0&single=true&output=csv&_ts=" + Date.now();
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('fetch failed');
+    const text = await res.text();
+    const rows = text.trim().split('\n').map(r => this.parseCSVLine(r));
+    const headers = rows[0].map(h => h.trim().toLowerCase());
+    const mainIdx = headers.indexOf('main page');
+    const subIdx = headers.indexOf('subpage');
+    const linkIdx = headers.indexOf('website page');
+    const map = new Map();
+    rows.slice(1).forEach(r => {
+      const main = (r[mainIdx] || '').trim();
+      const sub = (r[subIdx] || '').trim();
+      const link = (r[linkIdx] || '').trim();
+      if (!link) return;
+      const title = (!sub || sub === '-') ? main : sub;
+      if (title) map.set(title.toLowerCase(), link);
+    });
+    return map;
+  }
+  parseCSVLine(line) {
+    const out = []; let cur = ''; let inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQ) {
+        if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+        else if (ch === '"') { inQ = false; }
+        else cur += ch;
+      } else {
+        if (ch === '"') inQ = true;
+        else if (ch === ',') { out.push(cur); cur = ''; }
+        else cur += ch;
+      }
+    }
+    out.push(cur);
+    return out;
+  }
+  renderVals() {
+    const homeCrumb = { key: 'home', title: 'Home', file: 'https://sites.google.com/vjc.edu.sg/ecgvjc/home?authuser=0' };
+    const trail = this.state.trail.length ? this.state.trail : [homeCrumb];
+    const withHome = trail[0] && trail[0].key === 'home' ? trail : [homeCrumb, ...trail];
+    const crumbs = withHome.map((c, i) => ({
+      title: c.title, file: c.file,
+      isLast: i === withHome.length - 1,
+      notLast: i !== withHome.length - 1
+    }));
+    const backHref = withHome.length > 1 ? withHome[withHome.length - 2].file : 'home.dc.html';
+    const handleBack = (e) => {
+      const hasHistory = (window.history.length > 1) && (document.referrer && document.referrer.indexOf(location.hostname) !== -1 || window.history.length > 2);
+      if (hasHistory) { e.preventDefault(); window.history.back(); }
+    };
+    return { crumbs, backHref, handleBack };
+  }
+}
+</script>
+</body>
+</html>
