@@ -1159,3 +1159,11 @@ body[data-page="ecg-chatbot"] .chat { min-height: calc(100vh - var(--topbar-h) -
 .zonelist li { margin: 0; }
 .zonelist button { width: 100%; text-align: left; border: 0; background: none; padding: 8px 10px; border-radius: 10px; cursor: pointer; font-size: var(--fs-sm); min-height: 40px; }
 .zonelist button:hover { background: var(--sand); }
+/* Grid children may shrink, so wide scrollers (tables, tabs, floor map) scroll inside themselves. */
+.stack > *, .split > *, .tool > *, .block > *, .page__grid > * { min-width: 0; }
+.term .t-tab { height: 38px; padding: 4px 16px; font-weight: 650; }
+.term .t-tabs-pill { height: 38px; }
+.linkbtn { min-height: 44px; }
+@media (max-width: 420px) { .btn { white-space: normal; text-align: center; } .row > .btn { max-width: 100%; } }
+.topic .ico { align-self: start; margin-top: 2px; }
+@media (max-width: 420px) { .bigsearch .btn { display: none; } }
