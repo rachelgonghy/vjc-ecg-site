@@ -57,7 +57,7 @@ const PEOPLE_ECG = [
   { name: 'Ms. Cindy Chan', email: 'chan.siew.fun@vjc.edu.sg', role: 'English Department', img: 'https://i.postimg.cc/WbzgrmKf/Cindy.png' },
   { name: 'Ms. Charlene Teh', email: 'teh.kai.ling.charlene@vjc.edu.sg', role: 'English Department', img: 'https://i.postimg.cc/L5CPwhYM/Charlene.png' },
   { name: 'Ms. Cui Ying Chong', email: 'chong.cuiying@vjc.edu.sg', role: 'Head of Department, Economics Department', img: 'https://i.postimg.cc/JzBXYrRx/Cui-Ying.png' },
-  { name: 'Ms. Geraldine Tay', email: 'geraldine.tay.rou.jun@vjc.edu.sg', role: 'Economics Department', img: '' /* the old page reused Ms Chong\'s photo here; add Ms Tay\'s own */ },
+  { name: 'Ms. Geraldine Tay', email: 'geraldine.tay.rou.jun@vjc.edu.sg', role: 'Economics Department', img: 'assets/img/team/geraldine-tay.webp' },
   { name: 'Mr. Hazrin Bin Zainal', email: 'hazrin.zainal@vjc.edu.sg', role: 'English Department', img: 'https://i.postimg.cc/yxdgmBfj/Hazrin.png' },
   { name: 'Mr. Keng Hua Lee', email: 'lee.kenghua@vjc.edu.sg', role: 'Level Head (Physics), Science Department', img: 'https://i.postimg.cc/g2RwqgDG/Keng-Hua.png' },
   { name: 'Mrs. Mei Ling Chua', email: 'chue.meiling@vjc.edu.sg', role: 'Economics Department', img: 'https://i.postimg.cc/j5qLTtrr/Mei-Ling.png' },
@@ -115,7 +115,7 @@ function start() {
     objs.forEach(function (o) {
       var name = pick(o, ['name', 'full name', 'staff name']); if (!name) return;
       var k = by[name.toLowerCase()] || by[norm(name)];
-      var p = { name: name, email: pick(o, ['email', 'email address', 'e-mail']) || (k ? k.email : ''), role: pick(o, ['role', 'title', 'designation', 'position']) || (k ? k.role : ''), img: pick(o, ['image', 'img', 'photo', 'image url', 'photo url']) || (k ? k.img : '') };
+      var p = { name: name, email: pick(o, ['email', 'email address', 'e-mail']) || (k ? k.email : ''), role: pick(o, ['role', 'title', 'designation', 'position']) || (k ? k.role : ''), img: (k && /^assets\//.test(k.img)) ? k.img : (pick(o, ['image', 'img', 'photo', 'image url', 'photo url']) || (k ? k.img : '')) };
       var team = pick(o, ['team', 'section', 'group']).toLowerCase();
       if (team.indexOf('lead') > -1 || LN.indexOf(name.toLowerCase()) > -1) g.leads.push(p);
       else if (team.indexOf('td') > -1 || (!team && TN.indexOf(name.toLowerCase()) > -1)) g.td.push(p);

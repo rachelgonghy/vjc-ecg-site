@@ -52,13 +52,11 @@ Keep the `assets/` folder next to the pages.
 2. **Links inside Google Sites.** Inside an embed, links to other ECG pages open the Google Sites
    page in a new tab, as before. Opened directly, they go to the sibling file. Change `LINK_TARGET`
    in `assets/ecg.js` to `_top` if your Google Site allows embeds to navigate the whole page.
-3. **Ms Geraldine Tay's photo.** The old Meet the Team data reused Ms Chong Cui Ying's photo for her.
-   Her card now shows initials. Add her own photo to the team sheet.
-4. **Student data in a public sheet.** The Talk Allocation sheet is published to the web with every
+3. **Student data in a public sheet.** The Talk Allocation sheet is published to the web with every
    student's name and email, so anyone with the link can download it. Consider showing allocations
    by an ID or class instead, or using a form-based lookup.
-5. **Sample talks removed.** The old Talk Allocation page showed made-up talks (for example
+4. **Sample talks removed.** The old Talk Allocation page showed made-up talks (for example
    "Dr. Evelyn Carter") whenever the sheet failed. The new page says the list didn't load instead.
-6. **Sheet loading.** As before, if Google blocks a published sheet, pages retry through the public
+5. **Sheet loading.** As before, if Google blocks a published sheet, pages retry through the public
    CORS proxies the old site used (allorigins.win, corsproxy.io). Remove them in `ECG.sheet()` in
    `assets/ecg.js` if you'd rather not use third parties.
