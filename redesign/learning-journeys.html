@@ -159,11 +159,11 @@ function getFallbackRaw() {
           { title: 'Self-reflection and career clarity', body: "The journey helped students clarify their direction. Some discovered creative or design strengths and a genuine interest in engineering, design or 3D printing, while others realised the field wasn't the right fit and preferred the sciences, research or a more structured curriculum. A common insight was that learning CAD and design skills was valuable regardless of career path. Next steps students identified included learning coding, exploring the software further, working on more projects, attending open houses and workshops, and keeping their options open." },
         ],
         photos: [
-          { url: 'https://i.postimg.cc/vBXvMtdw/SUTD-LJ-1.png' },
-          { url: 'https://i.postimg.cc/T27c409r/SUTD-LJ-2.png' },
-          { url: 'https://i.postimg.cc/fT1fwb1N/SUTD-LJ-3.png' },
-          { url: 'https://i.postimg.cc/GpCPy5cS/SUTD-LJ-4.png' },
-          { url: 'https://i.postimg.cc/sDWT88g6/SUTD-LJ-5.png' },
+          { url: 'assets/img/lj/sutd-lj-1.webp' },
+          { url: 'assets/img/lj/sutd-lj-2.webp' },
+          { url: 'assets/img/lj/sutd-lj-3.webp' },
+          { url: 'assets/img/lj/sutd-lj-4.webp' },
+          { url: 'assets/img/lj/sutd-lj-5.webp' },
         ],
         testimonials: [
           { name: 'Yuvvraj Purohit', quote: "I discovered I genuinely enjoy the building process - taking a concept and constructing it with software. I really enjoyed it and I'm keen to do more." },
@@ -185,12 +185,12 @@ function getFallbackRaw() {
         ],
         learnings: [],
         photos: [
-          { url: 'https://i.postimg.cc/zDtFKcgQ/BMW-2.png' },
-          { url: 'https://i.postimg.cc/PJKYvrPW/BMW-6.png' },
-          { url: 'https://i.postimg.cc/wBQhvfzk/BMW-3.png' },
-          { url: 'https://i.postimg.cc/rsKWfqrg/BMW-4.png' },
-          { url: 'https://i.postimg.cc/W4LntqJy/BMW-1.png' },
-          { url: 'https://i.postimg.cc/HWhbV8q4/BMW-5.png' },
+          { url: 'assets/img/lj/bmw-2.webp' },
+          { url: 'assets/img/lj/bmw-6.webp' },
+          { url: 'assets/img/lj/bmw-3.webp' },
+          { url: 'assets/img/lj/bmw-4.webp' },
+          { url: 'assets/img/lj/bmw-1.webp' },
+          { url: 'assets/img/lj/bmw-5.webp' },
         ],
         testimonials: [
           { name: 'Rayson Ang', quote: "This experience gave me so much that a classroom couldn't. It boosted my confidence that I won't be replaced by AI but can be even more valuable by learning to use it - and I'll keep building things to fuel my passion." },
@@ -246,12 +246,12 @@ function getFallbackRaw() {
         ],
         learnings: [],
         photos: [
-          { url: 'https://i.postimg.cc/x8gJHR3p/CGH-1.png' },
-          { url: 'https://i.postimg.cc/qBGC9JdV/CGH-2.png' },
-          { url: 'https://i.postimg.cc/4xY77pHT/CGH-3.png' },
-          { url: 'https://i.postimg.cc/9fTD1VBz/CGH-4.png' },
-          { url: 'https://i.postimg.cc/43tYwZ1L/CGH-5.png' },
-          { url: 'https://i.postimg.cc/7b887DdC/CGH-6.png' },
+          { url: 'assets/img/lj/cgh-1.webp' },
+          { url: 'assets/img/lj/cgh-2.webp' },
+          { url: 'assets/img/lj/cgh-3.webp' },
+          { url: 'assets/img/lj/cgh-4.webp' },
+          { url: 'assets/img/lj/cgh-5.webp' },
+          { url: 'assets/img/lj/cgh-6.webp' },
         ],
         testimonials: [
           { name: 'Aishwaryaa Saravanan', quote: "I'm more interested in healthcare careers that involve interacting directly with patients and supporting their recovery, though some roles are demanding, so resilience and passion are important." },
@@ -308,12 +308,12 @@ function getFallbackRaw() {
         ],
         learnings: [],
         photos: [
-          { url: 'https://i.postimg.cc/CKYv8dKc/Art-Science-Museum-1.png' },
-          { url: 'https://i.postimg.cc/1XgMSqWG/Art-Science-Museum-2.png' },
-          { url: 'https://i.postimg.cc/vZwXRD5D/Art-Science-Museum-3.png' },
-          { url: 'https://i.postimg.cc/26tF05zm/Art-Science-Museum-4.png' },
-          { url: 'https://i.postimg.cc/PfLBTpv2/Art-Science-Museum-5.png' },
-          { url: 'https://i.postimg.cc/Jz8gNp6q/Art-Science-Museum-6.png' },
+          { url: 'assets/img/lj/art-science-museum-1.webp' },
+          { url: 'assets/img/lj/art-science-museum-2.webp' },
+          { url: 'assets/img/lj/art-science-museum-3.webp' },
+          { url: 'assets/img/lj/art-science-museum-4.webp' },
+          { url: 'assets/img/lj/art-science-museum-5.webp' },
+          { url: 'assets/img/lj/art-science-museum-6.webp' },
         ],
         testimonials: [
           { name: 'Brian Tan', quote: "I learnt that curators start super early, working on exhibitions years in advance. I also saw the wilder side, where researchers visit the bottom of the ocean. It's made me consider pursuing marine biology." },
@@ -334,6 +334,8 @@ function getFallbackRaw() {
     ];
   }
 
+/* Photos already copied into assets/img/lj are served from the site, even when the sheet still lists the postimg link. */
+var LOCAL = {"https://i.postimg.cc/1XgMSqWG/Art-Science-Museum-2.png":"assets/img/lj/art-science-museum-2.webp","https://i.postimg.cc/26tF05zm/Art-Science-Museum-4.png":"assets/img/lj/art-science-museum-4.webp","https://i.postimg.cc/43tYwZ1L/CGH-5.png":"assets/img/lj/cgh-5.webp","https://i.postimg.cc/4xY77pHT/CGH-3.png":"assets/img/lj/cgh-3.webp","https://i.postimg.cc/7b887DdC/CGH-6.png":"assets/img/lj/cgh-6.webp","https://i.postimg.cc/9fTD1VBz/CGH-4.png":"assets/img/lj/cgh-4.webp","https://i.postimg.cc/CKYv8dKc/Art-Science-Museum-1.png":"assets/img/lj/art-science-museum-1.webp","https://i.postimg.cc/GpCPy5cS/SUTD-LJ-4.png":"assets/img/lj/sutd-lj-4.webp","https://i.postimg.cc/HWhbV8q4/BMW-5.png":"assets/img/lj/bmw-5.webp","https://i.postimg.cc/Jz8gNp6q/Art-Science-Museum-6.png":"assets/img/lj/art-science-museum-6.webp","https://i.postimg.cc/PJKYvrPW/BMW-6.png":"assets/img/lj/bmw-6.webp","https://i.postimg.cc/PfLBTpv2/Art-Science-Museum-5.png":"assets/img/lj/art-science-museum-5.webp","https://i.postimg.cc/T27c409r/SUTD-LJ-2.png":"assets/img/lj/sutd-lj-2.webp","https://i.postimg.cc/W4LntqJy/BMW-1.png":"assets/img/lj/bmw-1.webp","https://i.postimg.cc/fT1fwb1N/SUTD-LJ-3.png":"assets/img/lj/sutd-lj-3.webp","https://i.postimg.cc/qBGC9JdV/CGH-2.png":"assets/img/lj/cgh-2.webp","https://i.postimg.cc/rsKWfqrg/BMW-4.png":"assets/img/lj/bmw-4.webp","https://i.postimg.cc/sDWT88g6/SUTD-LJ-5.png":"assets/img/lj/sutd-lj-5.webp","https://i.postimg.cc/vBXvMtdw/SUTD-LJ-1.png":"assets/img/lj/sutd-lj-1.webp","https://i.postimg.cc/vZwXRD5D/Art-Science-Museum-3.png":"assets/img/lj/art-science-museum-3.webp","https://i.postimg.cc/wBQhvfzk/BMW-3.png":"assets/img/lj/bmw-3.webp","https://i.postimg.cc/x8gJHR3p/CGH-1.png":"assets/img/lj/cgh-1.webp","https://i.postimg.cc/zDtFKcgQ/BMW-2.png":"assets/img/lj/bmw-2.webp"};
 /* ---- Rendering ---- */
 var E = function (s) { return ECG.esc(s); }, I = function (n) { return ECG.icon(n); };
 var data = getFallbackRaw(), year = 'All', sector = 'All', qi = {};
@@ -391,7 +393,7 @@ function start() {
   render();
   var note = document.querySelector('[data-sync]');
   var s = ECG.sheet(SHEET_URL);
-  var apply = function (d) { var p = parseSheet([d.head].concat(d.rows).map(function (r) { return r.map(function (c) { return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(','); }).join('\n')); if (p.length) { data = p; render(); note.textContent = 'Up to date with the ECG sheet.'; } };
+  var apply = function (d) { var p = parseSheet([d.head].concat(d.rows).map(function (r) { return r.map(function (c) { return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(','); }).join('\n')); if (p.length) { p.forEach(function (j) { (j.photos || []).forEach(function (ph) { if (LOCAL[ph.url]) ph.url = LOCAL[ph.url]; }); }); data = p; render(); note.textContent = 'Up to date with the ECG sheet.'; } };
   if (s.cached) apply(s.cached);
   s.fresh.then(apply).catch(function () { note.textContent = 'Showing saved journeys. The live list didn\u2019t load.'; });
   var main = document.querySelector('main');
