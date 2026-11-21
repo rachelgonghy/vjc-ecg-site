@@ -1167,3 +1167,9 @@ body[data-page="ecg-chatbot"] .chat { min-height: calc(100vh - var(--topbar-h) -
 @media (max-width: 420px) { .btn { white-space: normal; text-align: center; } .row > .btn { max-width: 100%; } }
 .topic .ico { align-self: start; margin-top: 2px; }
 @media (max-width: 420px) { .bigsearch .btn { display: none; } }
+
+/* Embedded chatbot */
+.botframe { border-radius: var(--r-lg); overflow: hidden; background: var(--paper); border: 1px solid var(--line); box-shadow: var(--shadow-1); }
+.botframe iframe { display: block; width: 100%; height: max(560px, calc(100vh - var(--topbar-h) - 190px)); border: 0; }
+@media (max-width: 720px) { .botframe iframe { height: calc(100vh - var(--topbar-h) - 210px); min-height: 480px; } }
+.botbar { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; margin-bottom: 12px; }

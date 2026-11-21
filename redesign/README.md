@@ -18,8 +18,10 @@ Google Sheets behind them, same Google Sites addresses for links.
   has tap-to-reveal myths. The Overseas Education Portal has **My plan**, a checklist that keeps the
   plan students already made in the old portal. Opportunities and fair talks have "Add to Google Calendar".
   The fair has a prep checklist and a colour-coded floor map.
-- **Chatbot.** Suggested questions, a live "thinking" line, answers that type in, related ECG pages
-  under each answer, copy, new chat, and questions passed from the homepage. See "Before going live".
+- **Chatbot.** `ecg-chatbot.html` shows the existing chatbot (vjc-ecg-chatbot.pages.dev) inside the
+  ECG site, with an "Open in a new tab" fallback. Questions from the homepage are passed on as `?q=`.
+  `ecg-chatbot-custom.html` is an unlinked alternative with ECG's own chat design (suggested questions,
+  typed-in answers, related ECG pages). It needs the chatbot's API route confirmed before use.
 
 ## Publishing
 
@@ -44,11 +46,9 @@ Keep the `assets/` folder next to the pages.
 
 ## Before going live
 
-1. **Chatbot address.** The chat page sends questions to
-   `https://vjc-ecg-chatbot.pages.dev/api/chat` (set at the top of the script in `ecg-chatbot.html`).
-   The old chatbot page and its `_worker.js` weren't in this repository, so the route and the reply
-   format are a best guess. The page accepts a JSON reply or a streamed reply. Confirm the route, or
-   share `_worker.js` so the bot itself can be improved too.
+1. **Chatbot embed.** Check the chatbot shows inside `ecg-chatbot.html`. If it stays blank, the
+   chatbot's Cloudflare settings block embedding (`X-Frame-Options` or `frame-ancestors`); allow your
+   GitHub Pages address there, or rely on the "Open in a new tab" button.
 2. **Links inside Google Sites.** Inside an embed, links to other ECG pages open the Google Sites
    page in a new tab, as before. Opened directly, they go to the sibling file. Change `LINK_TARGET`
    in `assets/ecg.js` to `_top` if your Google Site allows embeds to navigate the whole page.

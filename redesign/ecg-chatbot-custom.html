@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ECG Chatbot · ECG @ VJC</title>
+<meta name="description" content="Ask the ECG Chatbot about VJC's university applications, scholarships, timelines and careers, any time.">
+<meta name="theme-color" content="#8C151B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,600..800,0..100,0..1;1,9..144,600..800,0..100,0..1&display=swap">
+<link rel="stylesheet" href="assets/ecg.css">
+<script src="assets/ecg.js" defer></script>
+</head>
+<body data-page="ecg-chatbot-custom" data-no-help>
+<main id="main">
+  <div class="wrap">
+    <div class="chat">
+      <div>
+        <div class="chat__bar"><div data-crumbs></div><button class="btn btn--ghost" type="button" data-new hidden><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-rotate-ccw"/></svg>New chat</button></div>
+        <div class="chat__log" data-log aria-live="polite" aria-relevant="additions">
+          <div class="hello t-stagger" data-hello>
+            <span class="hello__mark t-stagger-line"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-bot"/></svg></span>
+            <h1 class="t-stagger-line t-stagger-line--2">Ask ECG anything</h1>
+            <p class="t-stagger-line t-stagger-line--3">Timelines, scholarships, university routes and careers, answered in the VJC context. For anything personal, book a session with Ms Rachel Gong.</p>
+            <div class="starters t-stagger-line t-stagger-line--4">
+              <button class="starter" type="button"><small>Scholarships</small>Which scholarships close in the next two months?</button>
+              <button class="starter" type="button"><small>UK</small>What are VJC's internal deadlines for UCAS?</button>
+              <button class="starter" type="button"><small>Local unis</small>How does ranking my choices affect my NUS application?</button>
+              <button class="starter" type="button"><small>Subjects</small>Can I do medicine without H2 Biology?</button>
+              <button class="starter" type="button"><small>Interviews</small>How should I prepare for a PSC interview?</button>
+              <button class="starter" type="button"><small>Careers</small>What can I do in JC1 to explore careers?</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <form class="composer" data-form>
+          <label class="sr-only" for="ask">Your question</label>
+          <textarea id="ask" rows="1" placeholder="Ask about deadlines, scholarships, courses…" data-input></textarea>
+          <button class="btn" type="submit" aria-label="Send question" data-send disabled><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-send"/></svg></button>
+        </form>
+        <p class="chat__note">The chatbot can get things wrong. Check key dates on the ECG pages, or <a href="book-an-ecg-session.html">book a session</a>.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+(function () {
+  /* ------------------------------------------------------------------
+     Backend. The answers come from the existing Cloudflare worker
+     (vjc-ecg-chatbot.pages.dev, see README). Set ENDPOINT to its chat
+     route. askBackend() accepts a JSON reply ({reply|answer|text|content|response})
+     or a streamed reply (text/event-stream or plain text chunks).
+     ------------------------------------------------------------------ */
+  var ENDPOINT = 'https://vjc-ecg-chatbot.pages.dev/api/chat';
+  var FALLBACK_URL = 'https://vjc-ecg-chatbot.pages.dev/';
+
+  function askBackend(history, onChunk, signal) {
+    var last = history[history.length - 1].content;
+    return fetch(ENDPOINT, {
+      method: 'POST', signal: signal,
+      headers: { 'Content-Type': 'application/json', 'Accept': 'text/event-stream, application/json, text/plain' },
+      body: JSON.stringify({ message: last, question: last, messages: history })
+    }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      var type = res.headers.get('content-type') || '';
+      if (/json/.test(type)) return res.json().then(function (j) {
+        var t = j.reply || j.answer || j.text || j.content || j.response || (j.choices && j.choices[0] && (j.choices[0].message || {}).content) || '';
+        onChunk(String(t)); return;
+      });
+      if (!res.body || !res.body.getReader) return res.text().then(onChunk);
+      var reader = res.body.getReader(), dec = new TextDecoder(), buf = '', sse = /event-stream/.test(type);
+      return (function pump() {
+        return reader.read().then(function (r) {
+          if (r.done) return;
+          var s = dec.decode(r.value, { stream: true });
+          if (!sse) { onChunk(s); return pump(); }
+          buf += s; var parts = buf.split('\n'); buf = parts.pop();
+          parts.forEach(function (line) {
+            var m = line.match(/^data:\s?(.*)$/); if (!m || m[1] === '[DONE]') return;
+            try { var j = JSON.parse(m[1]); onChunk(j.delta || j.text || j.content || j.response || (j.choices && j.choices[0] && (j.choices[0].delta || {}).content) || ''); }
+            catch (e) { onChunk(m[1]); }
+          });
+          return pump();
+        });
+      })();
+    });
+  }
+
+  var KEY = 'ecg:chat';
+  var log, input, send, form, newBtn, busy = false, ctrl = null;
+  var history = [];
+  try { history = JSON.parse(sessionStorage.getItem(KEY) || '[]'); } catch (e) { }
+  var E = function (s) { return ECG.esc(s); }, I = function (n) { return ECG.icon(n); };
+  var THINKING = ['Reading your question…', 'Checking VJC’s timelines…', 'Looking through the ECG pages…', 'Putting an answer together…'];
+
+  /* Light formatting: **bold**, [text](url), bare links, bullet and numbered lists, paragraphs. */
+  function format(t) {
+    var html = E(t)
+      .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+      .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+      .replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+    return html.split(/\n{2,}/).map(function (block) {
+      var lines = block.split('\n');
+      if (lines.every(function (l) { return /^\s*([-*•]|\d+[.)])\s+/.test(l) || !l.trim(); })) {
+        var ordered = /^\s*\d/.test(lines[0]);
+        return '<' + (ordered ? 'ol' : 'ul') + '>' + lines.filter(function (l) { return l.trim(); }).map(function (l) { return '<li>' + l.replace(/^\s*([-*•]|\d+[.)])\s+/, '') + '</li>'; }).join('') + '</' + (ordered ? 'ol' : 'ul') + '>';
+      }
+      return '<p>' + lines.join('<br>') + '</p>';
+    }).join('');
+  }
+
+  /* Related ECG pages, matched from the site's own search index. */
+  function related(text) {
+    var words = text.toLowerCase().replace(/\*\*/g, ' ').match(/[a-z*]{2,}/g) || [];
+    var stop = { the: 1, and: 1, for: 1, you: 1, your: 1, can: 1, are: 1, how: 1, what: 1, with: 1, this: 1, that: 1, from: 1, will: 1, have: 1, does: 1, into: 1, about: 1, which: 1, when: 1, vjc: 1, ecg: 1, page: 1, pages: 1 };
+    var pages = ECG.map.filter(function (p) { return p.file !== 'index' && p.file !== 'ecg-chatbot'; });
+    var docs = pages.map(function (p) { return (p.title + ' ' + p.kw).toLowerCase().split(/[\s,&]+/); });
+    // Rare words (ucas, psc, aba) count for much more than common ones (portal, university).
+    var df = {}; docs.forEach(function (d) { d.filter(function (w, i) { return d.indexOf(w) === i; }).forEach(function (w) { df[w] = (df[w] || 0) + 1; }); });
+    var uniq = words.filter(function (w, i) { return !stop[w] && words.indexOf(w) === i; });
+    return pages.map(function (p, i) {
+      var s = 0; uniq.forEach(function (w) { if (docs[i].indexOf(w) > -1) s += 1 / df[w]; });
+      return { p: p, s: s };
+    }).filter(function (x) { return x.s >= 0.5; }).sort(function (a, b) { return b.s - a.s; }).slice(0, 3).map(function (x) { return x.p; });
+  }
+
+  function save() { try { sessionStorage.setItem(KEY, JSON.stringify(history.slice(-30))); } catch (e) { } }
+  function scrollDown() {
+    var last = log.lastElementChild; if (!last) return;
+    var r = last.getBoundingClientRect(), composer = form.getBoundingClientRect();
+    if (r.bottom > composer.top - 12) window.scrollBy({ top: r.bottom - composer.top + 24, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  }
+  function hideHello() { var h = log.querySelector('[data-hello]'); if (h) h.remove(); newBtn.hidden = false; }
+
+  function addMe(text) {
+    hideHello();
+    log.insertAdjacentHTML('beforeend', '<div class="msg msg--me"><div class="msg__body">' + E(text).replace(/\n/g, '<br>') + '</div></div>');
+  }
+  function addBot(text, done) {
+    var el = document.createElement('div'); el.className = 'msg msg--bot';
+    el.innerHTML = '<span class="msg__av" aria-hidden="true">VJ</span><div class="msg__body"><div class="msg__text"></div></div>';
+    log.appendChild(el);
+    if (text != null) finish(el, text, done !== false);
+    return el;
+  }
+  function tools(el, text, question) {
+    var rel = related(question + ' ' + text);
+    var body = el.querySelector('.msg__body');
+    body.insertAdjacentHTML('beforeend',
+      (rel.length ? '<div class="related"><span class="related__label">Related ECG pages</span><div class="row">' + rel.map(function (p) { return '<a class="chip" ' + ECG.linkAttrs(p.file) + '>' + I(p.icon) + E(p.title) + '</a>'; }).join('') + '</div></div>' : '') +
+      '<div class="msg__tools"><button class="linkbtn" type="button" data-copy>' + I('copy') + 'Copy</button>' +
+      '<a class="linkbtn" ' + ECG.linkAttrs('book-an-ecg-session') + '>' + I('calendar-check') + 'Talk to a counsellor</a></div>');
+    body.querySelector('[data-copy]').addEventListener('click', function (e) {
+      var b = e.currentTarget; (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(function () { b.lastChild.textContent = 'Copied'; setTimeout(function () { b.lastChild.textContent = 'Copy'; }, 1600); }).catch(function () { });
+    });
+  }
+  function finish(el, text, withTools) {
+    el.querySelector('.msg__text').innerHTML = format(text);
+    if (withTools) { var q = ''; for (var i = history.length - 1; i >= 0; i--) if (history[i].role === 'user') { q = history[i].content; break; } tools(el, text, q); }
+  }
+
+  /* transitions.dev thinking states + streaming text */
+  function thinking(el) {
+    var t = el.querySelector('.msg__text'), i = 0;
+    var show = function () { t.innerHTML = '<span class="t-shimmer" data-text="' + E(THINKING[i]) + '">' + E(THINKING[i]) + '</span>'; };
+    show(); var iv = setInterval(function () { i = Math.min(i + 1, THINKING.length - 1); show(); }, 1800);
+    return function () { clearInterval(iv); };
+  }
+  function streamInto(el) {
+    var t = el.querySelector('.msg__text'), full = '', shown = 0, queue = [], timer = null, gap = 28;
+    function tick() {
+      if (!queue.length) { timer = null; return; }
+      var w = queue.shift(); var span = document.createElement('span'); span.className = 't-stream-w'; span.textContent = w;
+      t.lastChild && t.lastChild.nodeType === 1 && t.lastChild.tagName === 'P' ? t.lastChild.appendChild(span) : (t.appendChild(document.createElement('p')).appendChild(span));
+      requestAnimationFrame(function () { span.classList.add('is-in'); });
+      timer = setTimeout(tick, gap);
+    }
+    return {
+      push: function (chunk) {
+        if (!full) t.innerHTML = '<p></p>';
+        full += chunk;
+        var words = full.slice(shown).match(/\S+\s*|\s+/g) || [];
+        // keep the last partial word until more arrives
+        if (words.length && !/\s$/.test(words[words.length - 1])) words.pop();
+        words.forEach(function (w) { shown += w.length; queue.push(w); });
+        if (!timer) tick();
+      },
+      end: function () { return new Promise(function (r) { var wait = function () { if (queue.length) return setTimeout(wait, 60); r(full); }; wait(); }); }
+    };
+  }
+
+  function ask(text) {
+    text = text.trim(); if (!text || busy) return;
+    busy = true; send.disabled = true; input.value = ''; grow();
+    history.push({ role: 'user', content: text }); save(); addMe(text);
+    var el = addBot(null), stop = thinking(el), s = null; scrollDown();
+    ctrl = window.AbortController ? new AbortController() : null;
+    var to = setTimeout(function () { if (ctrl) ctrl.abort(); }, 45000);
+    askBackend(history, function (chunk) { if (!s) { stop(); s = streamInto(el); } s.push(chunk); scrollDown(); }, ctrl && ctrl.signal)
+      .then(function () { return s ? s.push(' ') || s.end() : ''; })
+      .then(function (answer) {
+        clearTimeout(to); stop();
+        answer = (answer || '').trim();
+        if (!answer) throw new Error('empty');
+        history.push({ role: 'assistant', content: answer }); save();
+        finish(el, answer, true);
+      })
+      .catch(function () {
+        clearTimeout(to); stop();
+        var msg = 'Sorry, I couldn’t reach the ECG Chatbot just now. Try again in a moment, or open the [current chatbot](' + FALLBACK_URL + ').';
+        finish(el, msg, false);
+        var rel = related(text);
+        el.querySelector('.msg__body').insertAdjacentHTML('beforeend', rel.length ? '<div class="related"><span class="related__label">These ECG pages may help</span><div class="row">' + rel.map(function (p) { return '<a class="chip" ' + ECG.linkAttrs(p.file) + '>' + I(p.icon) + E(p.title) + '</a>'; }).join('') + '</div></div>' : '');
+        history.pop(); save();
+      })
+      .then(function () { busy = false; send.disabled = !input.value.trim(); scrollDown(); });
+  }
+
+  function grow() { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 180) + 'px'; }
+
+  function start() {
+    log = document.querySelector('[data-log]'); input = document.querySelector('[data-input]'); send = document.querySelector('[data-send]');
+    form = document.querySelector('[data-form]'); newBtn = document.querySelector('[data-new]');
+    if (history.length) { hideHello(); history.forEach(function (m) { if (m.role === 'user') addMe(m.content); else addBot(m.content); }); }
+    input.addEventListener('input', function () { send.disabled = busy || !input.value.trim(); grow(); });
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); ask(input.value); } });
+    form.addEventListener('submit', function (e) { e.preventDefault(); ask(input.value); });
+    log.addEventListener('click', function (e) { var b = e.target.closest('.starter'); if (b) ask(b.lastChild.textContent); });
+    newBtn.addEventListener('click', function () { if (ctrl) ctrl.abort(); history = []; save(); location.replace(location.pathname); });
+    var q = new URLSearchParams(location.search).get('q');
+    if (q) { window.history.replaceState(null, '', location.pathname); ask(q); }
+  }
+  if (window.ECG) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body>
+</html>
