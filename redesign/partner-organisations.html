@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Partner Organisations · ECG @ VJC</title>
+<meta name="description" content="The organisations giving talks and hosting booths at EdVantage! Fair, matched to your interests.">
+<meta name="theme-color" content="#8C151B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,600..800,0..100,0..1;1,9..144,600..800,0..100,0..1&display=swap">
+<link rel="stylesheet" href="assets/ecg.css">
+<script src="assets/ecg.js" defer></script>
+</head>
+<body data-page="partner-organisations">
+<main id="main">
+  <header class="phero">
+    <div class="wrap phero__in t-stagger">
+      <div data-crumbs class="t-stagger-line" style="display:grid;gap:14px"></div>
+      <h1 class="t-stagger-line t-stagger-line--2">Partner organisations</h1>
+      <p class="lead t-stagger-line t-stagger-line--3">Who's giving talks and hosting booths at EdVantage! Fair. Pick your interests to see your best matches first, then sign up for their talks.</p>
+      
+    </div>
+  </header>
+  <div class="page">
+    <div class="wrap stack">
+      <section class="block" aria-label="Search and filter">
+        <div class="toolbar">
+          <div class="tabs-scroll"><div class="t-tabs t-tabs--lg" role="tablist" aria-label="Show" data-tabs><span class="t-tabs-pill"></span><button class="t-tab" role="tab" aria-selected="true">All</button><button class="t-tab" role="tab" aria-selected="false">Speakers</button><button class="t-tab" role="tab" aria-selected="false">Booths</button></div></div>
+          <div class="searchfield"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-search"/></svg><input class="input" type="search" placeholder="Search, e.g. engineering, law, NUS" aria-label="Search partners" data-q></div>
+          <div class="qa t-acc" data-open="false" style="background:transparent;border:0"><button class="qa__q" type="button" style="padding:4px 0;min-height:44px"><span><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-target"/></svg> Match my interests</span></button>
+            <div class="t-acc-panel"><div class="t-acc-panel-inner"><div class="filters" data-ints role="group" aria-label="Interests" style="padding:6px 0"></div></div></div></div>
+          <span class="syncnote" data-count aria-live="polite"></span>
+        </div>
+      </section>
+      <div data-list aria-live="polite"><div class="empty">Loading partners…</div></div>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+/* Partner list: assets/data/partners.json (edit it there). Same fields as the previous page's data. */
+var E = function (s) { return ECG.esc(s); }, I = function (n) { return ECG.icon(n); };
+var partners = [], interests = [], type = 0, picks = [], q = '';
+function isSpeaker(p) { return !!(p.talkLocation || p.speakerBio || (p.involvement && /speaker/i.test(p.involvement))); }
+function isBooth(p) { return !!(p.boothLocation || (p.involvement && /booth/i.test(p.involvement))); }
+function mins(t) { var m = (t || '').match(/(\d{1,2})[:.]?(\d{2})?\s*(AM|PM)?/i); if (!m) return null; var h = +m[1], mi = m[2] ? +m[2] : 0; if (m[3] && /pm/i.test(m[3]) && h < 12) h += 12; if (m[3] && /am/i.test(m[3]) && h === 12) h = 0; return h * 60 + mi; }
+/* Same calendar link as before: defaults to 5 Aug 2026, 45 minutes. */
+function calUrl(p) {
+  var ds = '20260805'; if (p.sessionDate) { var d = new Date(p.sessionDate); if (!isNaN(d)) ds = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0'); }
+  var s = mins(p.sessionTime); if (s == null) s = 540; var e = mins(p.endTime); if (e == null) e = s + (+((p.duration || '').match(/\d+/) || [45])[0]);
+  var f = function (x) { return String(Math.floor(x / 60) % 24).padStart(2, '0') + String(x % 60).padStart(2, '0') + '00'; };
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent('Speaker Session: ' + p.name) + '&details=' + encodeURIComponent('Join a talk by ' + p.name + ' at the EdVantage! Fair.') +
+    '&location=' + encodeURIComponent(p.talkLocation || p.boothLocation || 'Victoria Junior College') + '&dates=' + ds + 'T' + f(s) + '/' + ds + 'T' + f(e) + '&ctz=Asia/Singapore';
+}
+function logo(p) { return '<div class="logo">' + (p.logo ? '<img src="' + E(p.logo) + '" alt="" loading="lazy" onerror="this.parentNode.textContent=\'' + E((p.name || '?').slice(0, 2)) + '\'">' : E((p.name || '?').slice(0, 2))) + '</div>'; }
+function where(p) {
+  return (isSpeaker(p) && p.talkLocation ? '<span>' + I('mic') + 'Talk' + (p.sessionTime ? ' ' + E(p.sessionTime) : '') + ' · ' + E(p.talkLocation) + '</span>' : '') +
+    (isBooth(p) ? '<span>' + I('map-pin') + 'Booth</span>' : '');
+}
+function render() {
+  var chips = interests.map(function (i) { var on = picks.indexOf(i) > -1; return '<button type="button" class="chip' + (on ? ' is-active' : '') + '" aria-pressed="' + on + '" data-int="' + E(i) + '">' + E(i) + '</button>'; }).join('');
+  document.querySelector('[data-ints]').innerHTML = chips;
+  var s = q.toLowerCase();
+  var list = partners.filter(function (p) {
+    if (type === 1 && !isSpeaker(p)) return false; if (type === 2 && !isBooth(p)) return false;
+    if (picks.length && !p.interests.some(function (i) { return picks.indexOf(i) > -1; })) return false;
+    return !s || [p.name, p.description, p.longDescription, p.speakerPosition, p.speakerBio, p.category, p.involvement].join(' ').toLowerCase().indexOf(s) > -1;
+  }).map(function (p) { p._m = picks.length ? Math.round(p.interests.filter(function (i) { return picks.indexOf(i) > -1; }).length / picks.length * 100) : 0; return p; })
+    .sort(function (a, b) { return b._m - a._m || a.name.localeCompare(b.name); });
+  document.querySelector('[data-count]').textContent = list.length + (list.length === 1 ? ' organisation' : ' organisations');
+  document.querySelector('[data-list]').innerHTML = list.length ? '<div class="opps">' + list.map(function (p) {
+    return '<button type="button" class="opp" data-open="' + partners.indexOf(p) + '"><div class="sch__head">' + logo(p) + '<div><h3>' + E(p.name) + '</h3><div class="muted" style="font-size:var(--fs-xs)">' + E([p.category, p.sector].filter(Boolean).join(' · ')) + '</div></div></div>' +
+      (p._m ? '<div class="row"><span class="tag tag--ok">' + p._m + '% match</span></div>' : '') + (p.description ? '<p>' + E(p.description) + '</p>' : '') + '<div class="meta">' + where(p) + '</div></button>';
+  }).join('') + '</div>' : '<div class="empty">' + (partners.length ? 'No organisations match. Try fewer interests.' : 'Loading partners…') + '</div>';
+}
+function open(p) {
+  var last = document.activeElement, back = document.createElement('div'), d = document.createElement('div');
+  back.className = 'dialog-back'; d.className = 'dialog t-modal'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-labelledby', 'pt');
+  var sp = (p.speakers && p.speakers.length ? p.speakers : (p.speakerBio ? [{ name: '', position: p.speakerPosition, photo: p.speakerPhoto }] : []));
+  d.innerHTML = '<button class="dialog__close" type="button" aria-label="Close">' + I('x') + '</button><div class="sch__head">' + logo(p) + '<div><h2 id="pt" style="padding-right:0">' + E(p.name) + '</h2><div class="muted" style="font-size:var(--fs-sm)">' + E([p.category, p.sector].filter(Boolean).join(' · ')) + '</div></div></div>' +
+    '<p class="desc">' + E(p.longDescription || p.description || '') + '</p>' +
+    '<div class="kv">' + [['Talk', isSpeaker(p) ? [p.sessionTime, p.talkLocation].filter(Boolean).join(' · ') : ''], ['Session', p.speakerSession], ['Booth', isBooth(p) ? (p.boothLocation || 'In the hall').replace(/\.?\s*See booth position here\.?/i, '') : '']].filter(function (x) { return x[1]; }).map(function (x) { return '<div><span>' + x[0] + '</span>' + E(x[1]) + '</div>'; }).join('') + '</div>' +
+    (sp.length ? sp.map(function (s) { return '<div class="leadcard" style="grid-template-columns:64px 1fr"><figure class="person__pic" style="border-radius:50%;aspect-ratio:1;margin:0">' + (s.photo ? '<img src="' + E(s.photo) + '" alt="' + E(s.name || 'Speaker') + '" loading="lazy">' : '<div class="initials" style="font-size:1.2rem">' + I('mic') + '</div>') + '</figure><div><div class="person__name">' + E(s.name || 'Speaker') + '</div><div class="person__role">' + E(s.position || '') + '</div></div></div>'; }).join('') : '') +
+    (p.speakerBio ? '<div class="qa t-acc" data-open="false"><button class="qa__q" type="button"><span>About the speaker</span></button><div class="t-acc-panel"><div class="t-acc-panel-inner"><div class="qa__a"><p class="desc">' + E(p.speakerBio) + '</p></div></div></div></div>' : '') +
+    '<div class="row">' + (p.signUpLink ? '<a class="btn btn--gold" href="' + E(p.signUpLink) + '" target="_blank" rel="noopener">' + I('calendar-check') + 'Sign up for the talk</a>' : '') +
+    (isSpeaker(p) && p.sessionTime ? '<a class="btn btn--ghost" href="' + E(calUrl(p)) + '" target="_blank" rel="noopener">' + I('calendar-days') + 'Add to calendar</a>' : '') +
+    (isBooth(p) ? '<a class="btn btn--ghost" ' + ECG.linkAttrs('interactive-map') + '>' + I('map-pin') + 'Find the booth</a>' : '') +
+    (p.website ? '<a class="btn btn--ghost" href="' + E(p.website) + '" target="_blank" rel="noopener">Website' + I('arrow-up-right') + '</a>' : '') + '</div>';
+  document.body.appendChild(back); document.body.appendChild(d); ECG.initAccordions(d); void d.offsetWidth; d.classList.add('is-open');
+  var close = function () { d.classList.remove('is-open'); d.classList.add('is-closing'); back.remove(); setTimeout(function () { d.remove(); }, 150); document.removeEventListener('keydown', key); if (last) last.focus(); };
+  var key = function (e) { if (e.key === 'Escape') close(); };
+  back.addEventListener('click', close); d.querySelector('.dialog__close').addEventListener('click', close); document.addEventListener('keydown', key); d.querySelector('.dialog__close').focus();
+}
+function start() {
+  fetch('assets/data/partners.json').then(function (r) { return r.json(); }).then(function (d) { partners = d.partners || []; interests = d.interests || []; render(); })
+    .catch(function () { document.querySelector('[data-list]').innerHTML = '<div class="empty">The partner list didn’t load just now. Refresh the page in a moment.</div>'; });
+  document.querySelector('[data-tabs]').addEventListener('tabchange', function (e) { type = e.detail.index; render(); });
+  document.querySelector('[data-q]').addEventListener('input', function (e) { q = e.target.value.trim(); render(); });
+  document.querySelector('main').addEventListener('click', function (e) {
+    var c = e.target.closest('[data-int]'); if (c) { var v = c.getAttribute('data-int'), i = picks.indexOf(v); if (i > -1) picks.splice(i, 1); else picks.push(v); render(); }
+    var o = e.target.closest('[data-open]'); if (o) open(partners[+o.getAttribute('data-open')]);
+  });
+}
+if (window.ECG) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body>
+</html>

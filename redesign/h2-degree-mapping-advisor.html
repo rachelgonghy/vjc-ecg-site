@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Degree Mapping Advisor · ECG @ VJC</title>
+<meta name="description" content="See which university degrees your H2 subject combination opens up, and what the others need.">
+<meta name="theme-color" content="#8C151B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,600..800,0..100,0..1;1,9..144,600..800,0..100,0..1&display=swap">
+<link rel="stylesheet" href="assets/ecg.css">
+<script src="assets/ecg.js" defer></script>
+</head>
+<body data-page="h2-degree-mapping-advisor">
+<main id="main">
+  <header class="phero">
+    <div class="wrap phero__in t-stagger">
+      <div data-crumbs class="t-stagger-line" style="display:grid;gap:14px"></div>
+      <h1 class="t-stagger-line t-stagger-line--2">Which degrees does your combination open?</h1>
+      <p class="lead t-stagger-line t-stagger-line--3">Pick your H2 subjects to see every local degree they qualify you for, and what the rest would need.</p>
+      
+    </div>
+  </header>
+  <div class="page">
+    <div class="wrap stack">
+      <section id="pick" class="block " data-short="Combination">
+        <div class="block__head"><span class="ico ico--gold"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-book-open"/></svg></span><div><h2>Your H2 combination</h2></div></div>
+        <div data-combos></div>
+      </section>
+      <section id="results" class="block" aria-live="polite"><div data-results></div></section>
+      <div class="callout"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-info"/></svg><div><b>A guide, not the final word.</b> Prerequisites change. Always check the university's admissions page, or talk it through with Ms Rachel Gong.</div></div>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+/* ---- Subject, combination and course data and the eligibility rules, carried over unchanged ---- */
+const SUBJECTS_DATA = [
+  { id: 'biology', name: 'Biology', icon: 'dna', requiredFor: ['Biological Sciences (NTU)', 'Environmental Studies', 'Environmental Earth Systems Science', 'Food Science & Technology', 'Chemistry & Biological Chemistry', 'Speech and Language Therapy'] },
+  { id: 'physics', name: 'Physics', icon: 'zap', requiredFor: ['Biological Sciences (NTU)', 'Food Science & Technology', 'Environmental Studies', 'Environmental Earth Systems Science', 'Industrial Design', 'Landscape Architecture', 'Computer Science (NTU)', 'Speech and Language Therapy', 'Physics / Applied Physics'] },
+  { id: 'chemistry', name: 'Chemistry', icon: 'flask-conical', requiredFor: ['Medicine', 'Dentistry', 'Process Engineering & Synthetic Chemistry', 'Food Science & Technology', 'Chemistry & Biological Chemistry', 'Biological Sciences (NTU)', 'Environmental Studies', 'Environmental Earth Systems Science', 'Speech and Language Therapy'] },
+  { id: 'mathematics', name: 'Mathematics', icon: 'calculator', requiredFor: ['Business Analytics', 'Common Computer Science Programmes (NUS)', 'Information Security', 'Business Artificial Intelligence Systems', 'Computer Science (NTU)', 'Data Science & Economics / Artificial Intelligence', 'Accountancy', 'Business', 'Economics (NTU)', 'Philosophy, Politics & Economics (NTU)', 'Environmental Studies', 'Industrial Design', 'Landscape Architecture', 'Food Science & Technology', 'Chemistry & Biological Chemistry', 'Speech and Language Therapy', 'Physics / Applied Physics'] },
+  { id: 'economics', name: 'Economics', icon: 'trending-up', requiredFor: ['Accountancy', 'Business', 'Economics (NTU)', 'Common Computer Science Programmes (NUS)', 'Information Security', 'Business Artificial Intelligence Systems', 'Environmental Studies', 'Environmental Earth Systems Science', 'Industrial Design', 'Landscape Architecture', 'Speech and Language Therapy'] },
+  { id: 'further-math', name: 'Further Mathematics', icon: 'sigma', requiredFor: ['Business Analytics', 'Food Science & Technology'] },
+  { id: 'computing', name: 'Computing', icon: 'monitor', requiredFor: ['Computer Science (NTU)', 'Food Science & Technology', 'Environmental Earth Systems Science'] },
+  { id: 'literature', name: 'Literature', icon: 'book-open', requiredFor: ['Common Computer Science Programmes (NUS)', 'Information Security', 'Business Artificial Intelligence Systems', 'Environmental Studies', 'Accountancy', 'Business', 'Economics (NTU)', 'Industrial Design', 'Landscape Architecture'] },
+  { id: 'history', name: 'History', icon: 'landmark', requiredFor: ['Common Computer Science Programmes (NUS)', 'Information Security', 'Business Artificial Intelligence Systems', 'Environmental Studies', 'Accountancy', 'Business', 'Economics (NTU)', 'Industrial Design', 'Landscape Architecture'] },
+  { id: 'geography', name: 'Geography', icon: 'globe', requiredFor: ['Environmental Studies', 'Common Computer Science Programmes (NUS)', 'Information Security', 'Business Artificial Intelligence Systems', 'Accountancy', 'Business', 'Economics (NTU)'] },
+  { id: 'arts', name: 'Art/CLL/CSE/TSD/TLL', icon: 'palette', requiredFor: ['Industrial Design', 'Landscape Architecture', 'Common Computer Science Programmes (NUS)', 'Information Security', 'Business Artificial Intelligence Systems', 'Environmental Studies', 'Accountancy', 'Business', 'Economics (NTU)'] }
+];
+
+const VALID_COMBINATIONS = [
+  { id: 'pcm', subjectIds: ['physics', 'chemistry', 'mathematics'], category: 'Science' },
+  { id: 'bcm', subjectIds: ['biology', 'chemistry', 'mathematics'], category: 'Science' },
+  { id: 'pme', subjectIds: ['physics', 'mathematics', 'economics'], category: 'Science' },
+  { id: 'cme', subjectIds: ['chemistry', 'mathematics', 'economics'], category: 'Science' },
+  { id: 'bme', subjectIds: ['biology', 'mathematics', 'economics'], category: 'Science' },
+  { id: 'pmfm', subjectIds: ['physics', 'mathematics', 'further-math'], category: 'Science' },
+  { id: 'pcompm', subjectIds: ['physics', 'computing', 'mathematics'], category: 'Science' },
+  { id: 'ccompm', subjectIds: ['chemistry', 'computing', 'mathematics'], category: 'Science' },
+  { id: 'compme', subjectIds: ['computing', 'mathematics', 'economics'], category: 'Science' },
+  { id: 'lit-hist-arts', subjectIds: ['literature', 'history', 'arts'], category: 'Humanities' },
+  { id: 'lit-hist-econ', subjectIds: ['literature', 'history', 'economics'], category: 'Humanities' },
+  { id: 'lit-geog-arts', subjectIds: ['literature', 'geography', 'arts'], category: 'Humanities' },
+  { id: 'lit-geog-econ', subjectIds: ['literature', 'geography', 'economics'], category: 'Humanities' },
+  { id: 'lit-econ-arts', subjectIds: ['literature', 'economics', 'arts'], category: 'Humanities' },
+  { id: 'hist-econ-arts', subjectIds: ['history', 'economics', 'arts'], category: 'Humanities' },
+  { id: 'geog-econ-arts', subjectIds: ['geography', 'economics', 'arts'], category: 'Humanities' }
+];
+
+const UNIVERSAL_COURSES = ['Economics (NUS)', 'Architecture (SUTD)', 'Environmental Studies', 'Accountancy', 'Business', 'Economics (NTU)', 'Philosophy, Politics & Economics (NUS)', 'Law', 'Architecture (NUS)', 'Humanities Arts & Social Sciences', 'Maritime Studies', 'NIE (Arts/Science/Sport Science & Management)', 'Communication Studies'];
+
+const ALL_DEFINED_COURSES = [
+  'Law', 'Nursing', 'Architecture (NUS)', 'Engineering (NUS)', 'Engineering (NTU)', 'Robotics', 'Physics / Applied Physics', 'Industrial Design', 'Landscape Architecture', 'Business Analytics',
+  'Common Computer Science Programmes (NUS)', 'Information Security', 'Business Artificial Intelligence Systems', 'Computer Engineering (NUS)', 'Computer Engineering (NTU)', 'Computer Science (NTU)',
+  'Data Science & Economics / Artificial Intelligence', 'Environmental Studies', 'Food Science & Technology', 'Humanities Arts & Social Sciences',
+  'Biological Sciences (NTU)', 'Life Sciences', 'Chemistry & Biological Chemistry', 'Environmental Earth Systems Science', 'Philosophy, Politics & Economics (NTU)', 'Philosophy, Politics & Economics (NUS)', 'Accountancy',
+  'Business', 'Economics (NTU)', 'Maritime Studies', 'NIE (Arts/Science/Sport Science & Management)', 'Communication Studies', 'Medicine', 'Pharmacy', 'Dentistry',
+  'Process Engineering & Synthetic Chemistry', 'Pharmaceutical Sciences', 'Dietetics and Nutrition', 'Diagnostic Radiography',
+  'Physiotherapy', 'Occupational Therapy', 'Radiation Therapy (intakes every 2 years)', 'Speech and Language Therapy', 'Economics (NUS)', 'Architecture (SUTD)'
+];
+
+function computeResults(selectedSubjects) {
+    if (selectedSubjects.size === 0) return [];
+    const results = [];
+    const has = (id) => selectedSubjects.has(id);
+    const hasPCM = has('physics') && has('chemistry') && has('mathematics');
+
+    ALL_DEFINED_COURSES.forEach(course => {
+      if (course === 'Life Sciences') {
+        if (has('biology') && has('chemistry')) results.push({ name: course, isAvailable: true });
+        else results.push({ name: course, isAvailable: false, reason: 'Requires Biology AND Chemistry' });
+        return;
+      }
+      if (UNIVERSAL_COURSES.includes(course) || hasPCM) { results.push({ name: course, isAvailable: true }); return; }
+      if (course === 'Medicine' || course === 'Dentistry') {
+        if (has('chemistry') && (has('biology') || has('physics'))) results.push({ name: course, isAvailable: true });
+        else results.push({ name: course, isAvailable: false, reason: 'Requires Chemistry AND (Biology or Physics)' });
+        return;
+      }
+      if (course === 'Process Engineering & Synthetic Chemistry') {
+        if (has('mathematics') && has('chemistry')) results.push({ name: course, isAvailable: true });
+        else results.push({ name: course, isAvailable: false, reason: 'Requires Mathematics AND Chemistry' });
+        return;
+      }
+      if (course === 'Chemistry & Biological Chemistry') {
+        if (has('chemistry') && (has('mathematics') || has('physics'))) results.push({ name: course, isAvailable: true });
+        else results.push({ name: course, isAvailable: false, reason: 'Requires Chemistry AND (Mathematics or Physics)' });
+        return;
+      }
+      if (course === 'Pharmacy' || course === 'Pharmaceutical Sciences') {
+        if (has('chemistry') && (has('biology') || has('physics') || has('mathematics') || has('further-math'))) results.push({ name: course, isAvailable: true });
+        else results.push({ name: course, isAvailable: false, reason: 'Requires Chemistry AND (Bio, Physics, Math or FM)' });
+        return;
+      }
+      if (course === 'Engineering (NTU)' || course === 'Computer Engineering (NTU)') {
+        if (has('mathematics') && (has('physics') || has('chemistry') || has('biology') || has('computing'))) results.push({ name: course, isAvailable: true });
+        else results.push({ name: course, isAvailable: false, reason: 'Requires H2 Mathematics AND (Physics, Chem, Bio or Computing)' });
+        return;
+      }
+      if (course === 'Robotics') {
+        if (has('mathematics') && (has('physics') || has('chemistry') || has('biology') || has('computing'))) results.push({ name: course, isAvailable: true });
+        else results.push({ name: course, isAvailable: false, reason: 'Requires Mathematics AND (Physics, Chem, Bio or Comp)' });
+        return;
+      }
+      if (course === 'Engineering (NUS)' || course === 'Computer Engineering (NUS)') {
+        if (has('mathematics') || has('further-math')) results.push({ name: course, isAvailable: true });
+        else results.push({ name: course, isAvailable: false, reason: 'Requires H2 Mathematics or Further Mathematics' });
+        return;
+      }
+      if (course === 'Food Science & Technology') {
+        const count = ['chemistry', 'biology', 'physics', 'computing', 'mathematics', 'further-math'].filter(has).length;
+        if (count >= 2) results.push({ name: course, isAvailable: true });
+        else results.push({ name: course, isAvailable: false, reason: 'Requires any 2 of: Chem, Bio, Physics, Computing, Math, FM (H2)' });
+        return;
+      }
+      if (course === 'Physics / Applied Physics') {
+        if (has('physics') && has('mathematics')) results.push({ name: course, isAvailable: true });
+        else results.push({ name: course, isAvailable: false, reason: 'Requires Physics AND Mathematics' });
+        return;
+      }
+      if (course === 'Nursing') {
+        const count = ['biology', 'chemistry', 'computing', 'physics', 'mathematics'].filter(has).length;
+        if (count >= 2) results.push({ name: course, isAvailable: true });
+        else results.push({ name: course, isAvailable: false, reason: 'Requires any 2 of: Bio, Chem, Comp, Phy, Math' });
+        return;
+      }
+      if (['Diagnostic Radiography', 'Dietetics and Nutrition', 'Physiotherapy', 'Radiation Therapy (intakes every 2 years)'].includes(course)) {
+        const count = ['biology', 'chemistry', 'physics', 'mathematics'].filter(has).length;
+        if (count >= 2) results.push({ name: course, isAvailable: true });
+        else results.push({ name: course, isAvailable: false, reason: 'Requires any 2 of: Bio, Chem, Physics, Math (H2)' });
+        return;
+      }
+      if (course === 'Occupational Therapy' || course === 'Speech and Language Therapy') {
+        if (['biology', 'chemistry', 'physics', 'mathematics', 'economics'].some(has)) results.push({ name: course, isAvailable: true });
+        else results.push({ name: course, isAvailable: false, reason: 'Needs a good pass in Bio, Chem, Physics, Math or Econ (a good H1 Math pass also counts)' });
+        return;
+      }
+      const requiredSubjects = SUBJECTS_DATA.filter(s => s.requiredFor.includes(course));
+      if (requiredSubjects.some(s => has(s.id))) results.push({ name: course, isAvailable: true });
+      else {
+        const reqNames = requiredSubjects.map(s => s.name).join(' or ');
+        results.push({ name: course, isAvailable: false, reason: `Requires: ${reqNames || 'Specific H2'}` });
+      }
+    });
+    return results.sort((a, b) => a.isAvailable === b.isAvailable ? a.name.localeCompare(b.name) : (a.isAvailable ? 1 : -1));
+  }
+
+
+var E = function (s) { return ECG.esc(s); }, I = function (n) { return ECG.icon(n); };
+var sel = null, q = '', showNo = false;
+var KEY = 'ecg:dm';
+try { sel = localStorage.getItem(KEY); } catch (e) { }
+function name(id) { var s = SUBJECTS_DATA.filter(function (x) { return x.id === id; })[0]; return s ? s.name : id; }
+function combos() {
+  var cats = Array.from(new Set(VALID_COMBINATIONS.map(function (c) { return c.category; })));
+  document.querySelector('[data-combos]').innerHTML = cats.map(function (cat) {
+    return '<div class="group-title" style="margin-top:6px">' + E(cat) + '</div><div class="combos">' + VALID_COMBINATIONS.filter(function (c) { return c.category === cat; }).map(function (c) {
+      return '<button type="button" class="combo" aria-pressed="' + (c.id === sel) + '" data-combo="' + c.id + '"><b>' + c.subjectIds.map(name).map(E).join(' + ') + '</b></button>';
+    }).join('') + '</div>';
+  }).join('');
+}
+function results() {
+  var out = document.querySelector('[data-results]');
+  var c = VALID_COMBINATIONS.filter(function (x) { return x.id === sel; })[0];
+  if (!c) { out.innerHTML = '<div class="empty">Pick your H2 combination above to see which degrees it opens up.</div>'; return; }
+  var res = computeResults(new Set(c.subjectIds)), s = q.toLowerCase();
+  var yes = res.filter(function (r) { return r.isAvailable; }), no = res.filter(function (r) { return !r.isAvailable; });
+  var f = function (list) { return list.filter(function (r) { return !s || r.name.toLowerCase().indexOf(s) > -1; }); };
+  out.innerHTML = '<div class="result-hero"><b>' + yes.length + '</b><div><h2>degrees open to you</h2><p>with H2 ' + c.subjectIds.map(name).map(E).join(', ') + '. ' + no.length + (no.length === 1 ? ' needs' : ' need') + ' a different combination.</p></div></div>' +
+    '<div class="searchfield" style="margin-top:16px">' + I('search') + '<input class="input" type="search" placeholder="Check a course, e.g. Medicine" aria-label="Search courses" data-q value="' + E(q) + '"></div>' +
+    '<h3 style="margin-top:18px">Open to you</h3><div class="courses" style="margin-top:10px">' + (f(yes).map(function (r) { return '<div class="course">' + I('check') + '<span>' + E(r.name) + '</span></div>'; }).join('') || '<p class="muted">None match your search.</p>') + '</div>' +
+    '<div class="row" style="margin-top:18px;justify-content:space-between"><h3>Needs other subjects (' + f(no).length + ')</h3><button class="btn btn--ghost" type="button" data-shownot aria-expanded="' + showNo + '">' + (showNo ? 'Hide' : 'Show') + '</button></div>' +
+    (showNo || s ? '<div class="courses" style="margin-top:10px">' + f(no).map(function (r) { return '<div class="course is-no">' + I('x') + '<span><b>' + E(r.name) + '</b>' + E(r.reason || '') + '</span></div>'; }).join('') + '</div>' : '');
+  var inp = out.querySelector('[data-q]'); inp.addEventListener('input', function (e) { q = e.target.value; var p = e.target.selectionStart; results(); var n = document.querySelector('[data-q]'); n.focus(); n.setSelectionRange(p, p); });
+}
+function start() {
+  combos(); results();
+  document.querySelector('main').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-combo]'); if (b) { sel = b.getAttribute('data-combo'); try { localStorage.setItem(KEY, sel); } catch (x) { } combos(); results(); document.querySelector('#results').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); }
+    if (e.target.closest('[data-shownot]')) { showNo = !showNo; results(); }
+  });
+}
+if (window.ECG) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EdVantage! Fair · ECG @ VJC</title>
+<meta name="description" content="VJC&#x27;s annual fair with talks and partner booths on higher education, careers and scholarships.">
+<meta name="theme-color" content="#8C151B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,600..800,0..100,0..1;1,9..144,600..800,0..100,0..1&display=swap">
+<link rel="stylesheet" href="assets/ecg.css">
+<script src="assets/ecg.js" defer></script>
+</head>
+<body data-page="edvantage-fair">
+<main id="main">
+  <header class="phero phero--photo">
+    <div class="wrap phero__in t-stagger">
+      <div data-crumbs class="t-stagger-line" style="display:grid;gap:14px"></div>
+      <h1 class="t-stagger-line t-stagger-line--2">EdVantage! Fair 2026</h1>
+      <p class="lead t-stagger-line t-stagger-line--3">Talks and partner booths from organisations across industries, all in one hall. Ask questions, find pathways you hadn't considered, and connect with people in fields you're curious about.</p>
+      <figure class="phero__pic"><img src="assets/img/fair-hall.webp" alt="Students visiting partner booths at the EdVantage! Fair in the school hall" width="1000" height="688" decoding="async" fetchpriority="high"></figure><div class="facts t-stagger-line t-stagger-line--4"><div class="fact"><b><span data-when>5 Aug 2026</span></b><span>in the school hall</span></div><div class="fact"><b>1 talk at least</b><span>is compulsory</span></div><div class="fact"><b>Partner booths</b><span>to visit at your own pace</span></div></div>
+    </div>
+  </header>
+  <div class="page">
+    <div class="wrap stack">
+      <div class="pcards"><a class="pcard" href="partner-organisations.html"><figure class="pcard__pic"><img src="assets/img/fair-booth-chat.webp" alt="A Victorian talking to a partner at an EdVantage! Fair booth" width="900" height="600" loading="lazy" decoding="async"></figure><div class="pcard__body"><h2>Partner organisations</h2><p>Who's giving talks and hosting booths this year.</p><span class="pcard__more">Open <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-arrow-right"/></svg></span></div></a><a class="pcard" href="talk-allocation-portal.html"><figure class="pcard__pic"><img src="assets/img/fair-talk.jpg" alt="A speaker giving a talk to Victorians at the EdVantage! Fair" width="900" height="600" loading="lazy" decoding="async"></figure><div class="pcard__body"><h2>Find your talk</h2><p>See which talk you've been allocated. At least one is compulsory.</p><span class="pcard__more">Open <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-arrow-right"/></svg></span></div></a><a class="pcard" href="interactive-map.html"><figure class="pcard__pic"><img src="assets/img/fair-hall.webp" alt="The EdVantage! Fair hall with partner booths" width="900" height="600" loading="lazy" decoding="async"></figure><div class="pcard__body"><h2>Floor map</h2><p>Plan your route around the booths before you go.</p><span class="pcard__more">Open <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-arrow-right"/></svg></span></div></a></div>
+      <section id="prep" class="block " data-short="Prepare">
+        <div class="block__head"><span class="ico ico--gold"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-list-checks"/></svg></span><div><h2>Before the fair</h2><p>Tick these off as you go. Your progress stays on this device.</p></div></div>
+        <div class="split" style="align-items:center"><span class="syncnote" data-progress-label></span><div class="progress"><i data-progress></i></div></div><div class="journey-list" data-steps style="gap:10px;margin-top:14px"></div>
+      </section>
+      <section id="about" class="block " data-short="About">
+        <div class="block__head"><span class="ico"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-sparkles"/></svg></span><div><h2>About the fair</h2></div></div>
+        <div data-intro></div>
+      </section>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+var SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR_xYLtydQWFfo21sLJQnuEua33Pjr4PV0lQFI434za0Yq6Cbns-V_0d-QGkPDemNYw46fN2Mmyc4N0/pub?gid=0&single=true&output=csv';
+/* ---- Welcome text and its parser, carried over unchanged (the sheet's first row overrides it) ---- */
+const INITIAL_WRITEUP = "Welcome to EdVantage! Fair 2026, happening on 5 Aug 2026. \n\nThis is your opportunity to explore the many pathways available after graduation and gain valuable insights into higher education, careers, and scholarships. With representatives from a wide range of organisations gathered in one place, take the chance to ask questions, discover new opportunities, and learn more about the options available to you.\nWe hope EdVantage! 2026 inspires you to reflect on your aspirations, explore possibilities with confidence, and take meaningful steps towards your future.\nSteps to complete before EdVantage! Fair:1) Set up a LinkedIn profile2) Sign up for at least one speaker session3) Plan the booths you'd like to visit4) Make LinkedIn connections with partners in fields you're interested in";
+
+function parseWriteup(raw) {
+  const stepsIdx = raw.indexOf('Steps to complete');
+  const bodyRaw = stepsIdx >= 0 ? raw.slice(0, stepsIdx) : raw;
+  const stepsRaw = stepsIdx >= 0 ? raw.slice(stepsIdx) : '';
+  let paragraphs = bodyRaw.split(/\n+/).map(p => p.trim()).filter(Boolean);
+  const stepsMatch = stepsRaw.match(/\d+\)\s*[^0-9)][^0-9]*(?=\d+\)|$)/g) || [];
+  const steps = stepsMatch.map(s => s.replace(/^\d+\)\s*/, '').trim()).filter(Boolean);
+  let closing = '';
+  const closingIdx = paragraphs.findIndex(p => p.startsWith('We hope'));
+  if (closingIdx >= 0) { closing = paragraphs[closingIdx]; paragraphs = paragraphs.filter((_, i) => i !== closingIdx); }
+  return { paragraphs, steps, closing };
+}
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i], next = text[i + 1];
+    if (inQuotes) {
+      if (c === '"' && next === '"') { field += '"'; i++; }
+      else if (c === '"') { inQuotes = false; }
+      else { field += c; }
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (field !== '' || row.length) { row.push(field); rows.push(row); row = []; field = ''; }
+        if (c === '\r' && next === '\n') i++;
+      } else field += c;
+    }
+  }
+  if (field !== '' || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+
+var E = function (s) { return ECG.esc(s); };
+var KEY = 'ecg:fair-steps', done = {};
+try { done = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { }
+function render(w) {
+  var when = (w.paragraphs.join(' ').match(/happening on ([^.]+)/i) || [])[1];
+  if (when) { var f = document.querySelector('[data-when]'); f.textContent = when.trim(); }
+  document.querySelector('[data-intro]').innerHTML = w.paragraphs.map(function (p) { return '<p>' + E(p) + '</p>'; }).join('') + (w.closing ? '<p><b>' + E(w.closing) + '</b></p>' : '');
+  var n = 0;
+  document.querySelector('[data-steps]').innerHTML = w.steps.map(function (s, i) {
+    var on = !!done[s]; if (on) n++;
+    var txt = E(s).replace(/LinkedIn profile/, '<a href="https://www.linkedin.com/" target="_blank" rel="noopener">LinkedIn profile</a>');
+    return '<label class="task' + (on ? ' is-done' : '') + '" style="grid-template-columns:auto 1fr;cursor:pointer"><input class="check" type="checkbox" data-step="' + E(s) + '"' + (on ? ' checked' : '') + '><span class="task__t" style="font-weight:600">' + (i + 1) + '. ' + txt + '</span></label>';
+  }).join('');
+  document.querySelector('[data-progress]').style.width = (w.steps.length ? n / w.steps.length * 100 : 0) + '%';
+  document.querySelector('[data-progress-label]').textContent = n + ' of ' + w.steps.length + ' done';
+}
+function start() {
+  var w = parseWriteup(INITIAL_WRITEUP); render(w);
+  var s = ECG.sheet(SHEET_CSV_URL);
+  var apply = function (d) { var raw = d.head && d.head[1] ? d.head[1].trim() : ''; if (raw.length > 50) { w = parseWriteup(raw); render(w); } };
+  if (s.cached) apply(s.cached); s.fresh.then(apply).catch(function () { });
+  document.querySelector('[data-steps]').addEventListener('change', function (e) { var k = e.target.getAttribute('data-step'); if (!k) return; done[k] = e.target.checked; try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (x) { } render(w); });
+}
+if (window.ECG) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body>
+</html>

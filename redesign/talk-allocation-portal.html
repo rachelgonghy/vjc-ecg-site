@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Talk Allocation Portal · ECG @ VJC</title>
+<meta name="description" content="Find the EdVantage! Fair talks you&#x27;ve been allocated, and browse every talk and speaker.">
+<meta name="theme-color" content="#8C151B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,600..800,0..100,0..1;1,9..144,600..800,0..100,0..1&display=swap">
+<link rel="stylesheet" href="assets/ecg.css">
+<script src="assets/ecg.js" defer></script>
+</head>
+<body data-page="talk-allocation-portal">
+<main id="main">
+  <header class="phero">
+    <div class="wrap phero__in t-stagger">
+      <div data-crumbs class="t-stagger-line" style="display:grid;gap:14px"></div>
+      <h1 class="t-stagger-line t-stagger-line--2">Find your EdVantage! talk</h1>
+      <p class="lead t-stagger-line t-stagger-line--3">Type your name to see the talk you've been allocated. At least one is compulsory. You can also browse every talk and speaker.</p>
+      
+    </div>
+  </header>
+  <div class="page">
+    <div class="wrap stack">
+      <section class="block">
+        <div class="tabs-scroll"><div class="t-tabs t-tabs--lg" role="tablist" aria-label="View" data-tabs><span class="t-tabs-pill"></span><button class="t-tab" role="tab" aria-selected="true">Find my talk</button><button class="t-tab" role="tab" aria-selected="false">All talks</button></div></div>
+        <div data-pane style="margin-top:18px">
+          <div class="field" style="position:relative;max-width:560px"><label for="who">Your name or school email</label>
+            <div class="searchfield"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-search"/></svg><input id="who" class="input" type="search" autocomplete="off" placeholder="Start typing your name" data-who aria-controls="who-list"></div>
+            <div class="palette__body" id="who-list" role="listbox" data-suggest hidden style="position:absolute;left:0;right:0;top:100%;z-index:5;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--shadow-2);margin-top:6px"></div>
+          </div>
+          <div data-mine aria-live="polite" style="margin-top:18px"></div>
+        </div>
+        <div data-pane hidden style="margin-top:18px">
+          <div class="filterbar"><div class="searchfield"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-search"/></svg><input class="input" type="search" placeholder="Search talks or speakers" aria-label="Search talks" data-cq></div>
+          <div class="filters" data-cats role="group" aria-label="Category"></div></div>
+          <div data-all style="margin-top:18px"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+var ALLOCATIONS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSkcoqhj_WqClFXDjixPQXZcf7TwsN1al5JOd5mE_CVDNpWURGHoy8dCBhKabuWQpuw2OW31aLgz434/pub?gid=0&single=true&output=csv';
+var TALKS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSkcoqhj_WqClFXDjixPQXZcf7TwsN1al5JOd5mE_CVDNpWURGHoy8dCBhKabuWQpuw2OW31aLgz434/pub?gid=951205134&single=true&output=csv';
+/* ---- Sheet parsers carried over unchanged. The old sample talks are not carried over. ---- */
+function parseCSVRows(csvText){
+  const lines=[];let row=[];let inQuotes=false;let currentValue='';
+  for(let i=0;i<csvText.length;i++){
+    const char=csvText[i];const nextChar=csvText[i+1];
+    if(char==='"'){
+      if(inQuotes&&nextChar==='"'){currentValue+='"';i++;}else{inQuotes=!inQuotes;}
+    }else if(char===','&&!inQuotes){row.push(currentValue.trim());currentValue='';}
+    else if((char==='\r'||char==='\n')&&!inQuotes){
+      if(char==='\r'&&nextChar==='\n')i++;
+      row.push(currentValue.trim());lines.push(row);row=[];currentValue='';
+    }else{currentValue+=char;}
+  }
+  if(currentValue||row.length>0){row.push(currentValue.trim());lines.push(row);}
+  return lines;
+}
+
+function getTalkId(talkName){
+  if(!talkName)return '';
+  const idx=talkName.indexOf(':');
+  if(idx!==-1)return talkName.substring(0,idx).trim().toLowerCase();
+  return talkName.toLowerCase().replace(/[^a-z0-9]/g,'_');
+}
+function getTalkTitle(talkName){
+  if(!talkName)return '';
+  const idx=talkName.indexOf(':');
+  if(idx!==-1)return talkName.substring(idx+1).trim();
+  return talkName;
+}
+
+function parseAllocationsCSV(csvText){
+  const lines=parseCSVRows(csvText);
+  const rows=lines.filter(r=>r.length>=5&&r[2]&&r[2].toLowerCase()!=='name');
+  return rows.map((cells,idx)=>{
+    const name=cells[2]?cells[2].trim():'';
+    const email=cells[3]?cells[3].trim():'';
+    const talk1Id=getTalkId(cells[4]?cells[4].trim():'');
+    const talk2Id=getTalkId(cells[7]?cells[7].trim():'');
+    return {id:'alloc-'+idx,name,email,talk1Id,talk2Id};
+  }).filter(a=>a.name);
+}
+
+function parseTalksCSV(csvText){
+  const lines=parseCSVRows(csvText);
+  const rows=lines.filter(r=>r.length>0&&r.some(c=>c!==''));
+  if(rows.length<=1)return [];
+  const talks=[];let current=null;
+  for(let i=1;i<rows.length;i++){
+    const cells=rows[i];
+    const nameOrCode=cells[0]?cells[0].trim():'';
+    const speaker=cells[5]?cells[5].trim():'';
+    if(nameOrCode){
+      const id=getTalkId(nameOrCode);
+      const title=getTalkTitle(nameOrCode);
+      const timeSlot=cells[1]?cells[1].trim():'2:00 - 2:45 PM';
+      const venue=cells[2]?cells[2].trim():'LT1';
+      const category=cells[3]?cells[3].trim():'General';
+      const description=cells[4]?cells[4].trim():'';
+      current={id,title,speaker,speakers:speaker?[speaker]:[],timeSlot,venue,description,category};
+      talks.push(current);
+    }else if(speaker&&current){
+      current.speaker=current.speaker?current.speaker+', '+speaker:speaker;
+      current.speakers.push(speaker);
+    }
+  }
+  return talks;
+}
+
+
+var E = function (s) { return ECG.esc(s); }, I = function (n) { return ECG.icon(n); };
+var talks = [], allocs = [], person = null, q = '', cq = '', cats = [], tab = 0, loaded = { t: false, a: false }, failed = false;
+function toText(d) { return [d.head].concat(d.rows).map(function (r) { return r.map(function (c) { return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(','); }).join('\n'); }
+function talkCard(t, label) {
+  var sp = t.speakers && t.speakers.length ? t.speakers : (t.speaker ? [t.speaker] : []);
+  return '<article class="card">' + '<div class="row" style="gap:6px">' + (label ? '<span class="tag tag--soon">' + E(label) + '</span>' : '') + (t.category ? '<span class="tag">' + E(t.category) + '</span>' : '') + '</div>' +
+    '<h3>' + E(t.title) + '</h3><div class="meta">' + (t.timeSlot ? '<span>' + I('clock') + E(t.timeSlot) + '</span>' : '') + (t.venue ? '<span>' + I('map-pin') + E(t.venue) + '</span>' : '') + '</div>' +
+    (sp.length ? '<div class="meta"><span>' + I('mic') + E(sp.join(', ')) + '</span></div>' : '') + (t.description ? '<p class="desc">' + E(t.description) + '</p>' : '') + '</article>';
+}
+function renderFind() {
+  var s = q.trim().toLowerCase(), box = document.querySelector('[data-suggest]'), out = document.querySelector('[data-mine]');
+  var sug = s.length >= 2 && !person ? allocs.filter(function (a) { return a.name.toLowerCase().indexOf(s) > -1 || (a.email && a.email.toLowerCase().indexOf(s) > -1); }).slice(0, 6) : [];
+  box.innerHTML = sug.map(function (a, i) { return '<button type="button" class="result" role="option" data-pick="' + allocs.indexOf(a) + '"><span class="ico">' + E(a.name.charAt(0)) + '</span><span><span class="result__t">' + E(a.name) + '</span><span class="result__s">' + E(a.email || '') + '</span></span></button>'; }).join('');
+  box.hidden = !sug.length;
+  if (!loaded.a) { out.innerHTML = failed ? '<div class="empty">The allocations didn’t load just now. Refresh the page in a moment.</div>' : '<div class="empty">Loading allocations…</div>'; return; }
+  if (!person) { out.innerHTML = s.length >= 2 && !sug.length ? '<div class="empty">No one by that name yet. Check the spelling, or ask your civics tutor.</div>' : ''; return; }
+  var mine = [[person.talk1Id, 'Session 1'], [person.talk2Id, 'Session 2']].map(function (x) { var t = talks.filter(function (t) { return t.id === x[0]; })[0]; return t ? talkCard(t, x[1]) : ''; }).join('');
+  out.innerHTML = '<div class="row" style="justify-content:space-between;margin-bottom:12px"><h3>' + E(person.name) + '’s talks</h3><button class="linkbtn" type="button" data-clear>Not you? Search again</button></div>' +
+    (mine ? '<div class="cards">' + mine + '</div>' : '<div class="empty">No talk allocated yet. Check back soon.</div>');
+}
+function renderAll() {
+  var all = Array.from(new Set(talks.map(function (t) { return t.category; }).filter(Boolean)));
+  document.querySelector('[data-cats]').innerHTML = ['All'].concat(all).map(function (c) { var on = c === 'All' ? !cats.length : cats.indexOf(c) > -1; return '<button type="button" class="chip' + (on ? ' is-active' : '') + '" aria-pressed="' + on + '" data-cat="' + E(c) + '">' + E(c) + '</button>'; }).join('');
+  var s = cq.toLowerCase();
+  var list = talks.filter(function (t) { return (!cats.length || cats.indexOf(t.category) > -1) && (!s || (t.title + ' ' + t.speaker + ' ' + t.description).toLowerCase().indexOf(s) > -1); });
+  document.querySelector('[data-all]').innerHTML = list.length ? '<div class="cards">' + list.map(function (t) { return talkCard(t); }).join('') + '</div>' : '<div class="empty">' + (loaded.t ? 'No talks match.' : failed ? 'The talks didn’t load just now. Refresh the page in a moment.' : 'Loading talks…') + '</div>';
+}
+function render() { renderFind(); renderAll(); }
+function start() {
+  render();
+  var a = ECG.sheet(TALKS_URL), b = ECG.sheet(ALLOCATIONS_URL);
+  var ta = function (d) { var t = parseTalksCSV(toText(d)); if (t.length) { talks = t; loaded.t = true; render(); } };
+  var al = function (d) { allocs = parseAllocationsCSV(toText(d)); loaded.a = true; render(); };
+  if (a.cached) ta(a.cached); if (b.cached) al(b.cached);
+  Promise.all([a.fresh.then(ta), b.fresh.then(al)]).catch(function () { failed = true; render(); });
+  document.querySelector('[data-tabs]').addEventListener('tabchange', function (e) { document.querySelectorAll('[data-pane]').forEach(function (p, i) { p.hidden = i !== e.detail.index; }); });
+  var inp = document.querySelector('[data-who]');
+  inp.addEventListener('input', function () { q = inp.value; person = null; renderFind(); });
+  inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { var f = document.querySelector('[data-pick]'); if (f) { e.preventDefault(); f.click(); } } });
+  document.querySelector('[data-cq]').addEventListener('input', function (e) { cq = e.target.value.trim(); renderAll(); });
+  document.querySelector('main').addEventListener('click', function (e) {
+    var p = e.target.closest('[data-pick]'); if (p) { person = allocs[+p.getAttribute('data-pick')]; inp.value = person.name; renderFind(); }
+    if (e.target.closest('[data-clear]')) { person = null; q = ''; inp.value = ''; renderFind(); inp.focus(); }
+    var c = e.target.closest('[data-cat]'); if (c) { var v = c.getAttribute('data-cat'); if (v === 'All') cats = []; else { var i = cats.indexOf(v); if (i > -1) cats.splice(i, 1); else cats.push(v); } renderAll(); }
+  });
+}
+if (window.ECG) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body>
+</html>

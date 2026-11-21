@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interactive Map · ECG @ VJC</title>
+<meta name="description" content="Find booths at EdVantage! Fair on an interactive floor map, by zone or by name.">
+<meta name="theme-color" content="#8C151B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,600..800,0..100,0..1;1,9..144,600..800,0..100,0..1&display=swap">
+<link rel="stylesheet" href="assets/ecg.css">
+<script src="assets/ecg.js" defer></script>
+</head>
+<body data-page="interactive-map">
+<main id="main">
+  <header class="phero">
+    <div class="wrap phero__in t-stagger">
+      <div data-crumbs class="t-stagger-line" style="display:grid;gap:14px"></div>
+      <h1 class="t-stagger-line t-stagger-line--2">EdVantage! floor map</h1>
+      <p class="lead t-stagger-line t-stagger-line--3">Plan your route before the fair. Search for an organisation or pick a zone to light up its booths, then tap a booth to learn more.</p>
+      
+    </div>
+  </header>
+  <div class="page">
+    <div class="wrap stack">
+      <section class="block" aria-label="Floor map">
+        <div class="filterbar">
+          <div class="searchfield"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-search"/></svg><input class="input" type="search" placeholder="Find a booth, e.g. RSAF, NUS, healthcare" aria-label="Find a booth" data-q></div>
+          <div class="filters zonechips" data-zones role="group" aria-label="Zone"></div>
+          <span class="syncnote" data-count aria-live="polite"></span>
+        </div>
+        <div class="group-title" style="margin-top:18px">School hall</div>
+        <div class="floor"><div class="floor__grid" data-floor></div></div>
+        <p class="syncnote">On a phone, swipe the map sideways. Tap a booth for details.</p>
+        <div data-lib></div>
+      </section>
+      <section class="block" aria-label="Booths by zone"><div class="block__head"><span class="ico ico--gold"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-layers"/></svg></span><div><h2>Booths by zone</h2></div></div><div class="zonelist" data-zonelist></div></section>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+/* ---- Zones, booths (with their positions in the hall) and the sheet link, carried over unchanged ---- */
+const ZONES = [
+  {key:'hometeam',label:'HomeTeam & Public Safety',hue:255},
+  {key:'education',label:'Education',hue:85},
+  {key:'highered',label:'Higher Education',hue:205},
+  {key:'defence',label:'Defence & Engineering',hue:15},
+  {key:'scholarship',label:'Scholarships',hue:140},
+  {key:'finance',label:'Accountancy & Finance',hue:340},
+  {key:'urban',label:'Urban Planning & Built Env.',hue:175},
+  {key:'energy',label:'Energy & Environment',hue:60},
+  {key:'aviation',label:'Aviation',hue:220},
+  {key:'maritime',label:'Maritime',hue:190},
+  {key:'healthcare',label:'Healthcare',hue:300},
+  {key:'publicservice',label:'Public Service & Community',hue:110},
+];
+
+const BOOTHS = [
+  {n:"Republic of Singapore Air Force (RSAF)",acr:"RSAF",z:"defence",s:"Public",ind:"Defence",w:"The Republic of Singapore Air Force (RSAF) defends Singapore's airspace and supports national security. It offers careers in aviation, engineering, intelligence, cybersecurity, logistics and air operations, providing opportunities to work with advanced technology.",link:"https://www.rsaf.gov.sg/about-us/",logo:"assets/logos/RSAF.jpg",pos:{col:1,row:5}},
+  {n:"Republic of Singapore Navy (RSN)",acr:"RSN",z:"defence",s:"Public",ind:"Defence",w:"The Republic of Singapore Navy (RSN) defends Singapore's maritime interests and safeguards its sea lines of communication. It offers careers in operations, engineering, technology, and maritime security, supporting the nation's defence and regional stability.",link:"https://www.navy.gov.sg/",logo:"assets/logos/RSN.jpg",pos:{col:3,row:5}},
+  {n:"Security and Intelligence Division (SID)",acr:"SID",z:"defence",s:"Public",ind:"Public Safety & Security",w:"The Security and Intelligence Division (SID), under the Prime Minister's Office (PMO), is Singapore's external intelligence agency responsible for safeguarding the nation's security by gathering and analysing intelligence on external threats. It offers careers in intelligence analysis, technology, cybersecurity, research and operations.",link:"https://www.sid.gov.sg/",logo:"assets/logos/SID.jpg",pos:{col:2,row:6}},
+  {n:"Mindef Scholarship Centre (MSC)",acr:"MSC",z:"defence",s:"Public",ind:"Defence",w:"The MINDEF Scholarship Centre develops future leaders for the SAF and the defence sector through a range of scholarships and career development programmes. It supports students pursuing undergraduate and postgraduate studies while preparing them for meaningful careers in defence and public service.",link:"https://www.mindef.gov.sg/join-us/scholarships-and-sponsorships/scholarships/",logo:"assets/logos/MSC.jpg",pos:{col:4,row:5}},
+  {n:"Singapore Army",acr:"Army",z:"defence",s:"Public",ind:"Defence",w:"The Singapore Army protects Singapore on land and forms the backbone of the Singapore Armed Forces (SAF). It offers careers in combat, engineering, intelligence, logistics, communications and leadership, preparing personnel to defend the nation and respond to security challenges.",link:"https://www.army.gov.sg/",logo:"assets/logos/Army.jpg",pos:{col:4,row:6}},
+  {n:"Digital and Intelligence Service (DIS)",acr:"DIS",z:"defence",s:"Public",ind:"Defence",w:"The Digital and Intelligence Service (DIS) is the fourth Service of the Singapore Armed Forces (SAF), responsible for defending Singapore in the digital and intelligence domains. It offers careers in cybersecurity, intelligence, data analytics, software engineering, AI and digital operations to strengthen Singapore's defence and security.",link:"https://www.dis.gov.sg/",logo:"assets/logos/DIS.jpg",pos:{col:3,row:6}},
+  {n:"SAF Volunteer Corps (SAFVC)",acr:"SAFVC",z:"defence",s:"Public",ind:"Defence",w:"The SAF Volunteer Corps (SAFVC) enables Singaporeans and Permanent Residents to contribute to national defence without full-time military service. SAFVC volunteers serve in operational, specialist, and community roles, supporting the Singapore Armed Forces while strengthening Singapore's Total Defence efforts.",link:"https://safvc.mindef.gov.sg/",logo:"assets/logos/SAFVC.jpg",pos:{col:2,row:5}},
+  {n:"Headquarters Medical Corps (HQMC)",acr:"HQMC",z:"defence",s:"Public",ind:"Defence",w:"The Headquarters Medical Corps (HQ Medical Corps) provides medical support across the Singapore Armed Forces, ensuring the health and readiness of servicemen. It offers careers in medicine, nursing, allied health, medical operations and healthcare administration.",link:"https://www.mindef.gov.sg/join-us/scholarships-and-sponsorships/military-medicine-scholarships-sponsorships/",logo:"assets/logos/HQMC.jpg",pos:{col:1,row:6}},
+  {n:"A*STAR",acr:"A*STAR",z:"publicservice",s:"Public",ind:"Science Research",w:"Singapore's lead public sector R&D agency. It collaborates with public and private partners to drive innovation, bridge academia and industry, and support economic growth across biomedical sciences, physical sciences and engineering.",link:"https://www.a-star.edu.sg/",logo:"assets/logos/A_STAR.jpg",pos:{col:9,row:5}},
+  {n:"Accountant-General's Department (AGD)",acr:"AGD",z:"finance",s:"Public",ind:"Accountancy",w:"Plays a vital role in strengthening Singapore through sound public sector finance, providing robust financial systems and services to government agencies.",link:"https://www.agd.gov.sg/",logo:"assets/logos/AGD.jpg",pos:{col:4,row:4}},
+  {n:"Accounting and Corporate Regulatory Authority (ACRA)",acr:"ACRA",z:"finance",s:"Public",ind:"Accountancy",w:"Fosters a trusted and vibrant business environment. Regulates business registration and reporting requirements, and develops the accountancy profession and standards.",link:"https://www.acra.gov.sg/",logo:"assets/logos/ACRA.jpg"},
+  {n:"Auditor-General's Office (AGO)",acr:"AGO",z:"finance",s:"Public",ind:"Accountancy",w:"An independent organ of state and the national auditor, enhancing public accountability by flagging system weaknesses, non-compliance and waste in public funds.",link:"https://www.ago.gov.sg/",logo:"assets/logos/AGO.jpg",pos:{col:5,row:4}},
+  {n:"AUG Student Services",acr:"AUG",z:"highered",s:"Public",ind:"Education",w:"An overseas education consultant helping students apply to leading universities in Australia, Ireland, Switzerland, the UK and beyond, with free personalised support.",link:"https://augstudy.com/singapore/",logo:"assets/logos/AUG.jpg",pos:{col:11,row:1}},
+  {n:"BrightSparks",acr:"BS",z:"scholarship",s:"Public",ind:"Scholarship",w:"Singapore's #1 scholarship destination, helping students research and apply for scholarships since 2004.",link:"https://brightsparks.com.sg/",logo:"assets/logos/BS.jpg",pos:{col:1,row:3}},
+  {n:"Building and Construction Authority (BCA)",acr:"BCA",z:"urban",s:"Public",ind:"Built Environment",w:"Champions a safe, sustainable and liveable built environment, driving industry transformation and advancing building safety, quality and sustainability standards.",link:"https://www1.bca.gov.sg/",logo:"assets/logos/BCA.jpg",pos:{col:11,row:4}},
+  {n:"Changi Airport Group (CAG)",acr:"CAG",z:"aviation",s:"Public",ind:"Aerospace & Aviation",w:"Manages airport operations, air hub development, commercial activities and emergency services for Changi and Seletar Airports, plus foreign airport investments.",link:"http://www.changiairport.com",logo:"assets/logos/CAG.jpg",pos:{col:7,row:6}},
+  {n:"Civil Aviation Authority of Singapore (CAAS)",acr:"CAAS",z:"aviation",s:"Public",ind:"Aerospace & Aviation",w:"Works with aviation partners to build a safe, resilient, innovative and sustainable aviation sector. Offers overseas and local STEM and ATC scholarships.",link:"https://www.caas.gov.sg/",logo:"assets/logos/CAAS.jpg",pos:{col:6,row:6}},
+  {n:"Defence Science and Technology Agency (DSTA)",acr:"DSTA",z:"defence",s:"Public",ind:"Defence Technology",w:"Harnesses science and technology for Singapore's national defence. Scholars gain internships with DSTA, DSO, CSIT and the Global Internship Programme.",link:"https://www.dsta.gov.sg",logo:"assets/logos/DSTA.jpg",pos:{col:5,row:5}},
+  {n:"DigiPen Institute of Technology Singapore",acr:"DigiPen",z:"highered",s:"Public",ind:"Education",w:"Develops future innovators through hands-on learning in technology, art, design and game development. First 20 booth visitors receive a limited-edition tote or pouch!",link:"https://www.digipen.edu.sg",logo:"assets/logos/DigiPen.jpg",pos:{col:9,row:2}},
+  {n:"Japan Embassy",acr:"Japan Embassy",z:"scholarship",s:"Public",ind:"Scholarship",w:"Administers the MEXT Scholarship awarded by Japan's Ministry of Education, Culture, Sports, Science and Technology, and promotes Study in Japan.",link:"https://www.sg.emb-japan.go.jp/itpr_en/culture_mext_undergraduate.html",logo:"assets/logos/Japan_Embassy.jpg",pos:{col:8,row:3}},
+  {n:"Energy Market Authority (EMA)",acr:"EMA",z:"energy",s:"Public",ind:"Energy",w:"The statutory board ensuring a reliable and secure energy supply while promoting effective competition in the energy market.",link:"https://www.ema.gov.sg",logo:"assets/logos/EMA.jpg",pos:{col:8,row:4}},
+  {n:"Housing & Development Board (HDB)",acr:"HDB",z:"urban",s:"Public",ind:"Built Environment",w:"Singapore's public housing authority, developing homes and vibrant towns. The HDB Scholarship lets students help shape public housing's future.",link:"https://www.hdb.gov.sg/homepage",logo:"assets/logos/HDB.jpg",pos:{col:10,row:4}},
+  {n:"Institute of Singapore Chartered Accountants (ISCA)",acr:"ISCA",z:"finance",s:"Public",ind:"Accountancy",w:"The largest national accountancy body of Singapore, part of a worldwide community of over 1.8 million chartered accountants and students in 190+ countries.",link:"https://isca.org.sg",logo:"https://i.postimg.cc/qvvhXgmb/ISCA-logo.jpg",pos:{col:5,row:3}},
+  {n:"Land Transport Authority (LTA)",acr:"LTA",z:"urban",s:"Public",ind:"Transportation",w:"Plans, designs, builds and maintains Singapore's land transport infrastructure, strengthening connectivity through an inclusive, sustainable network.",link:"https://www.lta.gov.sg",logo:"assets/logos/LTA.jpg",pos:{col:11,row:3}},
+  {n:"LASALLE College of the Arts",acr:"LASALLE",z:"highered",s:"Public",ind:"Institute of Higher Learning",w:"A globally ranked arts institution offering 36 Diploma, BA (Hons) and MA programmes, taught by award-winning practitioners, founding member of UAS.",link:"https://www.lasalle.edu.sg",logo:"https://i.postimg.cc/BQfQw6qZ/LASALLE-logo.jpg",pos:{col:11,row:2}},
+  {n:"Maritime & Port Authority of Singapore (MPA)",acr:"MPA",z:"maritime",s:"Public",ind:"Maritime",w:"Drives development of Singapore's port and maritime sector as regulator and port authority, shaping national maritime strategy, decarbonisation and digitalisation.",link:"https://www.mpa.gov.sg",logo:"assets/logos/MPA.jpg",pos:{col:9,row:6}},
+  {n:"Ministry of Education (MOE)",acr:"MOE",z:"education",s:"Public",ind:"Education",w:"The Ministry of Education (MOE) develops Singapore's education system by nurturing students to reach their full potential. MOE offers diverse careers in teaching, educational leadership, curriculum development, policy, technology, and student support to shape the future of education.",link:"https://www.moe.gov.sg",logo:"assets/logos/MOE.jpg",pos:{col:6,row:1}},
+  {n:"Ministry of Finance (MOF)",acr:"MOF",z:"finance",s:"Public",ind:"Finance",w:"Responsible for managing Singapore's fiscal policies and economic structure, upholding international standards in company law, accounting and corporate governance.",link:"https://www.mof.gov.sg/",logo:"assets/logos/MOF.jpg",pos:{col:4,row:3}},
+  {n:"Ministry of Home Affairs (MHA)",acr:"MHA",z:"hometeam",s:"Public",ind:"Public Safety & Security",w:"The Ministry of Home Affairs (MHA) and its 10 Home Team agencies work as One HomeTeam to keep Singapore safe and secure, in partnership with the community. MHA offers civilian and uniformed careers as well as scholarship opportunities for those passionate about safeguarding Singapore.",link:"https://www.mha.gov.sg",logo:"assets/logos/MHA.jpg",pos:{col:1,row:1,rowSpan:2}},
+  {n:"Immigration & Checkpoints Authority (ICA)",acr:"ICA",z:"hometeam",s:"Public",ind:"Public Safety & Security",w:"The Immigration & Checkpoints Authority (ICA) safeguards Singapore's borders by managing immigration and checkpoint security. ICA also issues passports and identity cards, facilitates secure travel and trade, and protects the nation against cross-border threats.",link:"https://www.ica.gov.sg/",logo:"assets/logos/ICA.jpg",pos:{col:3,row:2}},
+  {n:"Internal Security Department (ISD)",acr:"ISD",z:"hometeam",s:"Public",ind:"Public Safety & Security",w:"Singapore's national security agency responsible for protecting the country against threats such as terrorism, espionage and subversion. ISD safeguards Singapore's security and social stability through intelligence, investigations and preventive measures.",link:"https://www.isd.gov.sg/",logo:"assets/logos/ISD.jpg",pos:{col:2,row:2}},
+  {n:"Singapore Civil Defence Force (SCDF)",acr:"SCDF",z:"hometeam",s:"Public",ind:"Public Safety & Security",w:"Singapore's national emergency response agency, providing firefighting, rescue and emergency medical services. SCDF also strengthens community resilience through public education, emergency preparedness and disaster response.",link:"https://www.scdf.gov.sg/",logo:"assets/logos/SCDF.jpg",pos:{col:4,row:1}},
+  {n:"Singapore Police Force (SPF)",acr:"SPF",z:"hometeam",s:"Public",ind:"Public Safety & Security",w:"Singapore's national law enforcement agency responsible for preventing crime, maintaining public order and ensuring the safety and security of the community. Officers serve in diverse roles, from frontline policing to investigations, counter-terrorism and community engagement.",link:"https://www.police.gov.sg/",logo:"assets/logos/SPF.jpg",pos:{col:3,row:1}},
+  {n:"Singapore Prison Service (SPS)",acr:"SPS",z:"hometeam",s:"Public",ind:"Public Safety & Security",w:"Safeguards offenders while supporting their rehabilitation and reintegration into society. Through education, skills training and counselling, SPS helps inmates rebuild their lives and contribute positively to the community.",link:"https://www.sps.gov.sg/",logo:"assets/logos/SPS.jpg",pos:{col:5,row:1}},
+  {n:"Commercial Affairs Department / Police Intelligence Department (CAD/PID)",acr:"CAD/PID",z:"hometeam",s:"Public",ind:"Public Safety & Security",w:"The Commercial Affairs Department (CAD) is the Singapore Police Force's specialist unit for investigating white-collar and financial crimes, including fraud, money laundering, and corruption.\n\nThe Police Intelligence Department (PID) is the Singapore Police Force's specialist intelligence unit, responsible for gathering and analysing intelligence to detect, prevent, and respond to serious security threats.",link:"https://www.police.gov.sg/",logo:"assets/logos/CAD_PID.jpg",pos:{col:2,row:1}},
+  {n:"Central Narcotics Bureau (CNB)",acr:"CNB",z:"hometeam",s:"Public",ind:"Public Safety & Security",w:"The Central Narcotics Bureau (CNB) is Singapore's primary agency for combating drug abuse and trafficking. Through enforcement, intelligence, preventive education, and rehabilitation efforts, CNB works to keep Singapore drug-free and protect the community from the harms of illegal drugs.",link:"https://www.cnb.gov.sg/",logo:"assets/logos/CNB.jpg",pos:{col:4,row:2}},
+  {n:"Home Team Science and Technology Agency (HTX)",acr:"HTX",z:"hometeam",s:"Public",ind:"Public Safety & Security",w:"The Home Team Science and Technology Agency (HTX) develops cutting-edge science and technology solutions to support Singapore's Home Team. HTX brings together experts in engineering, AI, cybersecurity, and data science to enhance public safety and national security.",link:"https://www.htx.gov.sg/",logo:"assets/logos/HTX.jpg",pos:{col:5,row:2}},
+  {n:"Ministry of Foreign Affairs (MFA)",acr:"MFA",z:"publicservice",s:"Public",ind:"Diplomacy & International Relations",w:"The Ministry of Foreign Affairs (MFA) manages Singapore's diplomatic relations, advances the country's interests overseas, and provides consular assistance to Singaporeans abroad.",link:"https://www.mfa.gov.sg/",logo:"assets/logos/MFA.jpg",pos:{col:3,row:3}},
+  {n:"Ministry of National Development (MND)",acr:"MND",z:"urban",s:"Public",ind:"Built Environment",w:"Responsible for Singapore's land use planning and development, from stronger communities to a distinctive global city where nature thrives.",link:"https://www.mnd.gov.sg",logo:"assets/logos/MND.jpg",pos:{col:10,row:3}},
+  {n:"MOH Holdings (MOHH)",acr:"MOHH",z:"healthcare",s:"Public",ind:"Healthcare",w:"The holding company of Singapore's public healthcare institutions, overseeing effective distribution of resources to deliver value-based healthcare.",link:"https://www.mohh.com.sg",logo:"assets/logos/MOHH.jpg",pos:{col:2,row:4}},
+  {n:"Nanyang Academy of Fine Arts (NAFA)",acr:"NAFA",z:"highered",s:"Public",ind:"Institute of Higher Learning",w:"Founded 1938, Singapore's pioneer arts institution nurturing artists and cultural leaders, offering programmes across design, fine arts, fashion, dance, music and theatre.",link:"https://www.nafa.edu.sg/",logo:"assets/logos/NAFA.jpg",pos:{col:10,row:2}},
+  {n:"Nanyang Technological University (NTU)",acr:"NTU",z:"highered",s:"Public",ind:"Institute of Higher Learning",w:"Learning extends beyond the classroom through internships, overseas programmes, competitions and research, supported by strong industry partnerships.",link:"https://www.ntu.edu.sg",logo:"assets/logos/NTU.jpg",pos:{col:8,row:1,colSpan:2}},
+  {n:"National Institute of Education (NIE)",acr:"NIE",z:"education",s:"Public",ind:"Education",w:"Singapore's sole national teacher training college, an autonomous institute of NTU, nurturing passionate educators through the Teaching Scholars Programme.",link:"https://www.nie.edu.sg",logo:"assets/logos/NIE.jpg",pos:{col:7,row:1}},
+  {n:"National Parks Board (NParks)",acr:"NParks",z:"energy",s:"Public",ind:"Environment",w:"Lead agency for greenery, biodiversity conservation and wildlife management, realising Singapore's City in Nature vision, and running the Animal & Veterinary Service.",link:"https://www.nparks.gov.sg",logo:"assets/logos/NParks.jpg",pos:{col:9,row:4}},
+  {n:"National Trades Union Congress (NTUC)",acr:"NTUC",z:"publicservice",s:"Public",ind:"Workforce Development",w:"Singapore's labour movement supporting workforce development. The NTUC Scholarship offers full funding, mentorship and meaningful career opportunities.",link:"https://www.ntuc.org.sg/uportal",logo:"assets/logos/NTUC.jpg",pos:{col:10,row:5}},
+  {n:"People's Association (PA)",acr:"PA",z:"publicservice",s:"Public",ind:"Community & Social Services",w:"A statutory board sparking community participation for a caring, united Singapore. Offers local and overseas undergraduate scholarships.",link:"https://www.pa.gov.sg",logo:"assets/logos/PA.jpg",pos:{col:11,row:5}},
+  {n:"Public Service Division (PSD)",acr:"PSD",z:"scholarship",s:"Public",ind:"Scholarship",w:"The PSC Scholarship is the premier government scholarship, offering diverse career pathways across the Public Service for outstanding, service-minded individuals.",link:"https://www.psd.gov.sg/",logo:"assets/logos/PSD.jpg",pos:{col:2,row:3}},
+  {n:"Scholarship Guide",acr:"SG",z:"scholarship",s:"Public",ind:"Scholarship",w:"A resource for post-A-Level, IB and diploma students, maintaining Singapore's largest scholarship database with 300+ scholarships from 100+ providers.",link:"https://scholarshipguide.com.sg",logo:"assets/logos/SG.jpg",pos:{col:1,row:4}},
+  {n:"Singapore Airlines (SIA)",acr:"SIA",z:"aviation",s:"Private",ind:"Aerospace & Aviation",w:"Singapore's national carrier, known for service excellence. Visit the booth to learn about scholarships and diverse career pathways within the SIA Group.",link:"https://www.singaporeair.com/en_UK/sg/home",logo:"assets/logos/SIA.jpg",pos:{col:8,row:6}},
+  {n:"Singapore Institute of Technology (SIT)",acr:"SIT",z:"highered",s:"Public",ind:"Institute of Higher Learning",w:"Singapore's first university of applied learning, integrating work-study and industry partnerships to develop future-ready professionals.",link:"https://www.singaporetech.edu.sg",logo:"assets/logos/SIT.jpg",pos:{col:8,row:2}},
+  {n:"Singapore Land Authority (SLA)",acr:"SLA",z:"urban",s:"Public",ind:"Built Environment",w:"Custodian of Singapore's State land and properties, optimising land use through adaptive reuse, green practices, geospatial technology and digitalisation.",link:"https://www.sla.gov.sg/",logo:"assets/logos/SLA.jpg"},
+  {n:"Singapore Maritime Foundation (SMF)",acr:"SMF",z:"maritime",s:"Public",ind:"Maritime",w:"Promotes Singapore as an International Maritime Centre and develops maritime talent via the MaritimeONE Scholarship, awarding 700+ scholarships worth S$19M+.",link:"https://www.smf.com.sg",logo:"assets/logos/SMF.jpg",pos:{col:10,row:6}},
+  {n:"Singapore Medical Society of the United Kingdom (SMSUK)",acr:"SMSUK",z:"healthcare",s:"Public",ind:"Healthcare",w:"A student-led organisation representing Singaporeans studying Medicine and Dentistry in the UK, bridging students and Singapore healthcare organisations.",link:"https://www.smsuk.com",logo:"assets/logos/SMSUK.jpg",pos:{col:9,row:3}},
+  {n:"Singapore Psychological Society Youth Wing (SPSYW)",acr:"SPSYW",z:"healthcare",s:"Private",ind:"Healthcare",w:"Connects students with practitioners, showcasing career pathways in psychology and promoting psychological knowledge in everyday life.",link:"https://singaporepsychologicalsociety.org/",logo:"assets/logos/SPSYW.jpg",pos:{col:3,row:4}},
+  {n:"Singapore University of Technology and Design (SUTD)",acr:"SUTD",z:"highered",s:"Public",ind:"Institute of Higher Learning",w:"A design-focused university leveraging AI for innovation. Founded with MIT, focused on Design Innovation, producing highly sought-after graduates.",link:"https://www.sutd.edu.sg",logo:"assets/logos/SUTD.jpg",pos:{col:10,row:1}},
+  {n:"Singapore-Industry Scholarship (SgIS)",acr:"SgIS",z:"scholarship",s:"Public",ind:"Scholarship",w:"The only multi-industry scholarship in partnership with the Singapore Government, for talent keen to contribute to leading organisations in strategic sectors.",link:"https://www.moe.gov.sg/sgis",logo:"assets/logos/SgIS.jpg",pos:{col:8,row:5}},
+  {n:"SP Group",acr:"SP",z:"energy",s:"Public",ind:"Energy",w:"A leading APAC utilities provider and Singapore's national grid operator, serving 1.7M customers with renewable energy, EV charging and digital energy platforms.",link:"https://www.spgroup.com.sg",logo:"assets/logos/SP.jpg"},
+  {n:"ST Engineering",acr:"STEng",z:"defence",s:"Public",ind:"Defence Technology",w:"A global technology, defence and engineering group across aerospace, smart city, defence and public security, serving customers in 100+ countries.",link:"https://www.stengg.com",logo:"https://i.postimg.cc/x8QHYSr2/ST-Engineering-logo-square.jpg",pos:{col:5,row:6}},
+  {n:"National University of Singapore (NUS)",acr:"NUS",z:"highered",s:"Public",ind:"Institute of Higher Learning",w:"A leading global university and Singapore's flagship institution, offering 60+ undergraduate programmes across 16 faculties. Ranked 1st in Asia and 8th globally (QS World University Rankings 2026).",link:"https://www.nus.edu.sg",logo:"assets/logos/NUS.jpg",loc:"Library",libSlot:1},
+  {n:"Singapore Management University (SMU)",acr:"SMU",z:"highered",s:"Public",ind:"Institute of Higher Learning",w:"A premier Asian university known for world-class research and distinguished teaching, located in Singapore's CBD. Home to 12,000+ students and a 36,000+ global alumni network.",link:"https://www.smu.edu.sg",logo:"assets/logos/SMU.jpg",loc:"Library",libSlot:2},
+  {n:"Singapore University of Social Sciences (SUSS)",acr:"SUSS",z:"highered",s:"Public",ind:"Institute of Higher Learning",w:"Brings together recent graduates and working professionals alike, offering 110+ undergraduate and graduate programmes in flexible full- and part-time modes.",link:"https://www.suss.edu.sg",logo:"assets/logos/SUSS.jpg",loc:"Library",libSlot:3},
+];
+
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1XIvwDZsjTcipi-fy8qXtCbSIrImufA5u8UpwRGnII4c/export?format=csv&gid=0";
+function normKey(s) { return (s || '').toLowerCase().replace(/\(.*?\)/g, '').replace(/[^a-z0-9]/g, '').trim(); }
+function parseCSV(text) {
+  const rows = []; let row = []; let field = ''; let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else { inQuotes = false; } }
+      else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+      else if (c === '\r') { /* skip */ }
+      else field += c;
+    }
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+
+const NODATA_SLOTS = [];
+
+
+var E = function (s) { return ECG.esc(s); }, I = function (n) { return ECG.icon(n); };
+/* Zone colours tuned to sit with VJC's maroon and gold (no purples). */
+var COL = { hometeam: '#3B5B8C', education: '#6E8B2E', highered: '#2E7FA8', defence: '#A4452C', scholarship: '#2F8A57', finance: '#8C151B', urban: '#2D8C82', energy: '#B8860B', aviation: '#4A6FA5', maritime: '#1F6E8C', healthcare: '#B04A6E', publicservice: '#5E7D3A' };
+var live = null, q = '', zone = 'all';
+function booths() {
+  return BOOTHS.map(function (b) { var lv = live && live[normKey(b.n)]; if (!lv) return b; return Object.assign({}, b, { w: lv.w && lv.w !== '-' ? lv.w : b.w, link: lv.link && lv.link !== '-' ? lv.link : b.link, logo: lv.logo && /^https?:/.test(lv.logo) ? lv.logo : b.logo }); });
+}
+function hit(b) { return (zone === 'all' || b.z === zone) && (!q || (b.n + ' ' + b.acr + ' ' + b.ind + ' ' + b.s).toLowerCase().indexOf(q) > -1); }
+function render() {
+  var bs = booths();
+  document.querySelector('[data-zones]').innerHTML = '<button type="button" class="chip' + (zone === 'all' ? ' is-active' : '') + '" data-zone="all" aria-pressed="' + (zone === 'all') + '">All zones</button>' + ZONES.map(function (z) {
+    var n = bs.filter(function (b) { return b.z === z.key; }).length; if (!n) return '';
+    return '<button type="button" class="chip' + (zone === z.key ? ' is-active' : '') + '" style="--z:' + COL[z.key] + '" data-zone="' + z.key + '" aria-pressed="' + (zone === z.key) + '"><i></i>' + E(z.label) + ' (' + n + ')</button>';
+  }).join('');
+  var grid = bs.filter(function (b) { return b.pos; }).map(function (b) {
+    var on = hit(b);
+    return '<button type="button" class="booth' + (on ? (q || zone !== 'all' ? ' is-hit' : '') : ' is-dim') + '" style="--z:' + COL[b.z] + ';grid-column:' + b.pos.col + (b.pos.colSpan ? ' / span ' + b.pos.colSpan : '') + ';grid-row:' + b.pos.row + (b.pos.rowSpan ? ' / span ' + b.pos.rowSpan : '') + '" data-b="' + BOOTHS.indexOf(BOOTHS.filter(function (x) { return x.n === b.n; })[0]) + '" aria-label="' + E(b.n) + '">' + E(b.acr || b.n.slice(0, 6)) + '</button>';
+  }).join('') + (typeof NODATA_SLOTS !== 'undefined' ? NODATA_SLOTS.map(function (s) { return '<div class="booth booth--empty" style="grid-column:' + s.col + ';grid-row:' + s.row + '">' + E(s.label || '') + '</div>'; }).join('') : '') +
+    [[6, 2], [7, 2], [6, 3], [7, 3], [6, 4], [7, 4], [6, 5], [7, 5]].map(function (f) { return '<div class="walkway" style="grid-column:' + f[0] + ';grid-row:' + f[1] + '" aria-hidden="true"></div>'; }).join('');
+  document.querySelector('[data-floor]').innerHTML = grid;
+  var lib = bs.filter(function (b) { return b.libSlot; }).sort(function (a, b) { return a.libSlot - b.libSlot; });
+  document.querySelector('[data-lib]').innerHTML = lib.length ? '<div class="group-title" style="margin-top:14px">Library</div><div class="row">' + lib.map(function (b) { return '<button type="button" class="booth' + (hit(b) ? '' : ' is-dim') + '" style="--z:' + COL[b.z] + ';width:80px;height:56px" data-b="' + BOOTHS.indexOf(BOOTHS.filter(function (x) { return x.n === b.n; })[0]) + '" aria-label="' + E(b.n) + '">' + E(b.acr) + '</button>'; }).join('') + '</div>' : '';
+  var total = bs.filter(hit).length;
+  document.querySelector('[data-count]').textContent = total + (total === 1 ? ' booth' : ' booths') + (q || zone !== 'all' ? ' match' : '');
+  document.querySelector('[data-zonelist]').innerHTML = ZONES.map(function (z) {
+    var items = bs.filter(function (b) { return b.z === z.key && hit(b); }); if (!items.length) return '';
+    return '<div class="card" style="--z:' + COL[z.key] + '"><h3><i></i>' + E(z.label) + '</h3><ul>' + items.map(function (b) { return '<li><button type="button" data-b="' + BOOTHS.indexOf(BOOTHS.filter(function (x) { return x.n === b.n; })[0]) + '"><b>' + E(b.acr || '') + '</b> ' + E(b.n) + '</button></li>'; }).join('') + '</ul></div>';
+  }).join('') || '<div class="empty">No booths match. Try another search.</div>';
+}
+function openBooth(b) {
+  var z = ZONES.filter(function (x) { return x.key === b.z; })[0], last = document.activeElement, back = document.createElement('div'), d = document.createElement('div');
+  back.className = 'dialog-back'; d.className = 'dialog t-modal'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-labelledby', 'bt');
+  var href = b.link ? (/^https?:/.test(b.link) ? b.link : 'https://' + b.link) : '';
+  d.innerHTML = '<button class="dialog__close" type="button" aria-label="Close">' + I('x') + '</button><div class="row" style="gap:6px"><span class="tag" style="background:' + COL[b.z] + ';color:#fff">' + E(z ? z.label : '') + '</span>' + (b.s ? '<span class="tag tag--maroon">' + E(b.s) + '</span>' : '') + '</div>' +
+    '<h2 id="bt">' + E(b.n) + '</h2>' + (b.ind ? '<div class="muted">' + E(b.ind) + '</div>' : '') + (b.w ? '<p class="desc">' + E(b.w) + '</p>' : '') +
+    '<div class="row">' + (href ? '<a class="btn btn--gold" href="' + E(href) + '" target="_blank" rel="noopener">Visit website' + I('arrow-up-right') + '</a>' : '') + '<a class="btn btn--ghost" ' + ECG.linkAttrs('partner-organisations') + '>See talks and partners</a></div>';
+  document.body.appendChild(back); document.body.appendChild(d); void d.offsetWidth; d.classList.add('is-open');
+  var close = function () { d.classList.remove('is-open'); d.classList.add('is-closing'); back.remove(); setTimeout(function () { d.remove(); }, 150); document.removeEventListener('keydown', key); if (last) last.focus(); };
+  var key = function (e) { if (e.key === 'Escape') close(); };
+  back.addEventListener('click', close); d.querySelector('.dialog__close').addEventListener('click', close); document.addEventListener('keydown', key); d.querySelector('.dialog__close').focus();
+}
+function start() {
+  render();
+  fetch(SHEET_CSV_URL + '&_t=' + Date.now()).then(function (r) { return r.ok ? r.text() : null; }).then(function (text) {
+    if (!text) return; var rows = parseCSV(text), h = (rows[0] || []).map(function (x) { return (x || '').trim().toLowerCase(); });
+    var io = h.indexOf('organisation'), il = h.indexOf('link'), iw = h.indexOf('company writeup'), ig = h.indexOf('logo'); if (io < 0) return;
+    live = {}; rows.slice(1).forEach(function (r) { var o = r[io] && r[io].trim(); if (o) live[normKey(o)] = { n: o, link: il > -1 ? (r[il] || '').trim() : '', w: iw > -1 ? (r[iw] || '').trim() : '', logo: ig > -1 ? (r[ig] || '').trim() : '' }; });
+    render();
+  }).catch(function () { });
+  document.querySelector('[data-q]').addEventListener('input', function (e) { q = e.target.value.trim().toLowerCase(); render(); });
+  document.querySelector('main').addEventListener('click', function (e) {
+    var z = e.target.closest('[data-zone]'); if (z) { zone = z.getAttribute('data-zone'); render(); }
+    var b = e.target.closest('[data-b]'); if (b) openBooth(booths()[+b.getAttribute('data-b')]);
+  });
+}
+if (window.ECG) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subject Eligibility Advisor · ECG @ VJC</title>
+<meta name="description" content="A short check of which H2 subjects you qualify for, based on your O-Level or IP results.">
+<meta name="theme-color" content="#8C151B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,600..800,0..100,0..1;1,9..144,600..800,0..100,0..1&display=swap">
+<link rel="stylesheet" href="assets/ecg.css">
+<script src="assets/ecg.js" defer></script>
+</head>
+<body data-page="h2-subject-eligibility-advisor">
+<main id="main">
+  <header class="phero">
+    <div class="wrap phero__in t-stagger">
+      <div data-crumbs class="t-stagger-line" style="display:grid;gap:14px"></div>
+      <h1 class="t-stagger-line t-stagger-line--2">Can you take it at H2?</h1>
+      <p class="lead t-stagger-line t-stagger-line--3">Answer a few quick questions about your O-Level or IP results to see which H2 subjects you qualify for, and what to do next.</p>
+      
+    </div>
+  </header>
+  <div class="page">
+    <div class="wrap stack">
+      <section class="block" aria-live="polite"><div data-quiz></div></section>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+/* ---- Wording and sheet parser carried over unchanged; the sheet can still override any line ---- */
+const DEFAULT_CONTENT = {
+  'header.eyebrow':'Education & Career Guidance @ VJC','header.title':'H2 Subject Eligibility Advisor',
+  'footer.text':'H2 Subject Eligibility Advisor - Victoria Junior College',
+  'welcome.title':'Check your H2 eligibility',
+  'welcome.subtitle':'A short assessment to see which H2 subjects you qualify for, based on your O-Level or IP results.',
+  'welcome.note':'Note - Students admitted via the Arts stream are generally restricted from H2 Sciences, but may still qualify for H2 Math.',
+  'welcome.button':'Get started',
+  'track.title':'Your academic track','track.opt1':'GCE O-Level','track.opt2':'Integrated Programme',
+  'score.olevel_title':'O-Level L1R5','score.olevel_subtitle':'Raw score before bonus point deductions',
+  'score.olevel_opt1':'L1R5 ≤ 11 points','score.olevel_opt2':'12 ≤ L1R5 ≤ 15','score.olevel_opt3':'L1R5 ≥ 16 points',
+  'score.ip_title':'IP GPA result','score.ip_subtitle':'Select your final GPA band',
+  'score.ip_opt1':'GPA ≥ 3.2','score.ip_opt2':'3.0 ≤ GPA ≤ 3.2','score.ip_opt2_sub':'And passed English Language',
+  'score.ip_opt3':'GPA < 3.0','score.ip_opt3_sub':'Or failed English Language',
+  'lou.title':'Letter of Understanding','lou.subtitle':'Is the subject listed on your restricted LoU?',
+  'lou.opt1_label':'Yes','lou.opt1_sub':'Subject is on my LoU','lou.opt2_label':'No','lou.opt2_sub':'I have no restrictions for this',
+  'mathsci.title':'Subject interest',
+  'mathsci.subtitle_3h2':"You're offered 3 H2 + 1 H1! Are you planning to take any H2 Math / Science subjects?",
+  'mathsci.subtitle_default':'Are you planning to take any H2 Math or H2 Science subjects?',
+  'mathsci.opt1_label':'Yes','mathsci.opt1_sub':'I want to take H2 Math / Science','mathsci.opt2_label':'No','mathsci.opt2_sub':'Arts subjects only',
+  'amath.title':'Grade verification','amath.subtitle':'What was your grade for A-Math or Pure Sciences?',
+  'amath.opt1_label':'A1 or A2','amath.opt2_label':'B3 and below',
+  'readystatus.title':'Have you taken the H2 Math/Science readiness test?',
+  'readystatus.subtitle':'The readiness test is given in February, after January learning support.',
+  'readystatus.note':'All students with L1R5 ≥ 16 must attend learning support in January and pass the subject readiness tests in February, under the Victoria Elevate Programme (VEP).',
+  'readystatus.opt1_label':'Yes, test taken','readystatus.opt1_sub':'I have my results',
+  'readystatus.opt2_label':'No, not yet','readystatus.opt2_sub':'Still in progress / not started',
+  'readyscore.title':'Test performance','readyscore.subtitle':'Select your test result range',
+  'readyscore.opt1_label':'Score ≥ 60 marks','readyscore.opt1_sub':'Full H2 eligibility',
+  'readyscore.opt2_label':'Score < 60 marks','readyscore.opt2_sub':'H1 level recommended',
+  'readyscore.opt3_label':'Results pending','readyscore.opt3_sub':'Conditional VEP track',
+  'results.heading':'Assessment results','results.actions_label':'Recommended actions',
+  'content.impact_quiz':'Take the H2 Subject Impact Quiz on this ECG website to better align your H2 subject combination with your desired university degree.',
+  'result.eligible_4h2.title':'You can take 4 H2s',
+  'result.eligible_4h2.desc_olevel':'If you choose H2 Math or H2 Sciences, ensure you scored at least A2 for A Math or the relevant science subject.',
+  'result.eligible_4h2.desc_ip':"You're eligible for 4 H2 subjects. This combination is academically rigorous, so balance it wisely.",
+  'result.eligible_4h2.badge_label':'Eligible',
+  'result.eligible_4h2.rec_extra':'If you scored B3 or below for the relevant Math / Pure science, you need to attend VEP lessons and take the relevant subject readiness tests in Feb as practice.',
+  'result.eligible_3h2.title':'Standard 3 H2 + 1 H1',
+  'result.eligible_3h2.desc':'Based on your GPA, you qualify for the standard A-Level subject combination offered at Victoria JC.',
+  'result.eligible_3h2.badge_label':'Eligible',
+  'result.eligible_3h2.rec1':'Consider future university prerequisites','result.eligible_3h2.rec2':'Strategise your H1 contrasting subject choice',
+  'result.lou_h1_only.title':'H1 level only (LoU)',
+  'result.lou_h1_only.desc':'Due to the Letter of Understanding, you cannot take this subject at H2 level, but it remains available at H1.',
+  'result.lou_h1_only.badge_label':'Restricted',
+  'result.lou_h1_only.rec1':'Enrol in the subject at H1 level','result.lou_h1_only.rec2':'Select other H2 subjects to fulfill requirements',
+  'result.conditional.title':'Conditional eligibility',
+  'result.conditional.desc':'You can still secure H2 Math/Science by completing the Victoria Elevate Programme (VEP).',
+  'result.conditional.badge_label':'Conditional',
+  'result.conditional.rec_vep1':'Attend VEP learning support classes in Jan',
+  'result.conditional.rec_vep2_practice':'Take relevant subject readiness tests in Feb as practice',
+  'result.conditional.rec_vep2_target':'Achieve ≥ 60 marks in the Feb Readiness Test',
+  'result.conditional.rec_vep3_drop':'Subject drops to H1 if test score is < 60',
+  'result.arts_stream.title':'Arts stream focus',
+  'result.arts_stream.desc':'Since you are opting out of H2 Sciences, you have flexibility in Languages, Humanities, and the Arts.',
+  'result.arts_stream.badge_label':'Eligible',
+  'result.arts_stream.rec1':'H1 Math is mandatory for all students','result.arts_stream.rec2':'Explore diverse H2 Arts/Humanities options',
+  'result.eligible_h2_sci.title':'Ready for H2 Math/Science',
+  'result.eligible_h2_sci.desc':'You have met the requirements for H2 Science subjects. Be prepared for a significant jump in complexity.',
+  'result.eligible_h2_sci.badge_label':'Eligible',
+  'result.eligible_h2_sci.rec_workload':'Monitor workload early in the first semester',
+  'result.h1_recommended.title':'H1 level recommended',
+  'result.h1_recommended.desc':'Based on your readiness test score (< 60), taking the subject at H1 level is advised for your academic success.',
+  'result.h1_recommended.badge_label':'Action needed',
+  'result.h1_recommended.rec1':'Opt for the subject at H1 level to manage stress','result.h1_recommended.rec2':'Prioritize performance in your primary 3 H2s',
+};
+
+function parseContentCSV(text) {
+  const lines = text.split(/\r?\n/).filter(l => l.length);
+  const map = {};
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i];
+    const m = line.match(/^"((?:[^"]|"")*)","((?:[^"]|"")*)"$/);
+    if (!m) continue;
+    const key = m[1].replace(/""/g, '"');
+    const val = m[2].replace(/""/g, '"');
+    map[key] = val;
+  }
+  return map;
+}
+
+
+var CONTENT_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ5uHZQQHbZu8a2X2E9YsH7vu07GGxAEJ5V0-W9AVfL472JaNNlJpxvj2732Lfdf2PcgrIDv-omjE1b/pub?gid=16754080&single=true&output=csv';
+var E = function (s) { return ECG.esc(s); }, I = function (n) { return ECG.icon(n); };
+var C = Object.assign({}, DEFAULT_CONTENT), g = function (k) { return C[k] != null ? C[k] : ''; };
+var st = { screen: 'WELCOME', history: [], track: null, score: null, amath: null, result: null };
+function go(next) { st.history.push(st.screen); st.screen = next; render(); }
+function finish(r) { st.result = r; go('RESULTS'); }
+/* Same branching as the previous advisor. */
+var SCREENS = {
+  TRACK: function () { return { t: g('track.title'), opts: [[g('track.opt1'), '', function () { st.track = 'O_LEVEL'; go('SCORE'); }], [g('track.opt2'), '', function () { st.track = 'IP'; go('SCORE'); }]] }; },
+  SCORE: function () {
+    var ol = st.track === 'O_LEVEL';
+    var pick = function (r) { st.score = r;
+      if (ol) { if (r === 'L1R5_LOW') finish('ELIGIBLE_4H2'); else go('MATHSCI'); }
+      else { if (r === 'GPA_HIGH') finish('ELIGIBLE_4H2'); else if (r === 'GPA_MID') finish('ELIGIBLE_3H2'); else go('MATHSCI'); } };
+    return ol ? { t: g('score.olevel_title'), s: g('score.olevel_subtitle'), opts: [[g('score.olevel_opt1'), '', function () { pick('L1R5_LOW'); }], [g('score.olevel_opt2'), '', function () { pick('L1R5_MID'); }], [g('score.olevel_opt3'), '', function () { pick('L1R5_HIGH'); }]] }
+      : { t: g('score.ip_title'), s: g('score.ip_subtitle'), opts: [[g('score.ip_opt1'), '', function () { pick('GPA_HIGH'); }], [g('score.ip_opt2'), g('score.ip_opt2_sub'), function () { pick('GPA_MID'); }], [g('score.ip_opt3'), g('score.ip_opt3_sub'), function () { pick('GPA_LOW'); }]] };
+  },
+  MATHSCI: function () { return { t: g('mathsci.title'), s: st.score === 'L1R5_MID' ? g('mathsci.subtitle_3h2') : g('mathsci.subtitle_default'), opts: [
+    [g('mathsci.opt1_label'), g('mathsci.opt1_sub'), function () { if (st.track === 'IP' && st.score === 'GPA_LOW') go('LOU'); else if (st.score === 'L1R5_MID') go('AMATH'); else go('READYSTATUS'); }],
+    [g('mathsci.opt2_label'), g('mathsci.opt2_sub'), function () { finish('ARTS_STREAM'); }]] }; },
+  LOU: function () { return { t: g('lou.title'), s: g('lou.subtitle'), opts: [[g('lou.opt1_label'), g('lou.opt1_sub'), function () { finish('LOU_H1_ONLY'); }], [g('lou.opt2_label'), g('lou.opt2_sub'), function () { finish('CONDITIONAL_H2'); }]] }; },
+  AMATH: function () { return { t: g('amath.title'), s: g('amath.subtitle'), opts: [[g('amath.opt1_label'), '', function () { st.amath = true; finish('ELIGIBLE_H2_SCI'); }], [g('amath.opt2_label'), '', function () { st.amath = false; finish('CONDITIONAL_VEP'); }]] }; },
+  READYSTATUS: function () { return { t: g('readystatus.title'), s: g('readystatus.subtitle'), note: g('readystatus.note'), opts: [[g('readystatus.opt1_label'), g('readystatus.opt1_sub'), function () { go('READYSCORE'); }], [g('readystatus.opt2_label'), g('readystatus.opt2_sub'), function () { finish('CONDITIONAL_VEP'); }]] }; },
+  READYSCORE: function () { return { t: g('readyscore.title'), s: g('readyscore.subtitle'), opts: [[g('readyscore.opt1_label'), g('readyscore.opt1_sub'), function () { finish('ELIGIBLE_H2_SCI'); }], [g('readyscore.opt2_label'), g('readyscore.opt2_sub'), function () { finish('H1_RECOMMENDED'); }], [g('readyscore.opt3_label'), g('readyscore.opt3_sub'), function () { finish('CONDITIONAL_VEP'); }]] }; }
+};
+function result() {
+  var r = st.result, q = g('content.impact_quiz');
+  switch (r) {
+    case 'ELIGIBLE_4H2': var recs = [q]; if (!(st.track === 'IP' && st.score === 'GPA_HIGH')) recs.unshift(g('result.eligible_4h2.rec_extra'));
+      return ['eligible_4h2', st.track === 'O_LEVEL' ? g('result.eligible_4h2.desc_olevel') : g('result.eligible_4h2.desc_ip'), recs];
+    case 'ELIGIBLE_3H2': return ['eligible_3h2', g('result.eligible_3h2.desc'), [g('result.eligible_3h2.rec1'), g('result.eligible_3h2.rec2'), q]];
+    case 'LOU_H1_ONLY': return ['lou_h1_only', g('result.lou_h1_only.desc'), [g('result.lou_h1_only.rec1'), g('result.lou_h1_only.rec2'), q]];
+    case 'CONDITIONAL_H2': case 'CONDITIONAL_VEP':
+      var mid = st.score === 'L1R5_MID' || (st.track === 'IP' && st.score === 'GPA_LOW');
+      return ['conditional', g('result.conditional.desc'), mid && st.amath === false ? [g('result.conditional.rec_vep1'), g('result.conditional.rec_vep2_practice'), q] : [g('result.conditional.rec_vep1'), g('result.conditional.rec_vep2_target'), g('result.conditional.rec_vep3_drop')]];
+    case 'ARTS_STREAM': return ['arts_stream', g('result.arts_stream.desc'), [g('result.arts_stream.rec1'), g('result.arts_stream.rec2'), q]];
+    case 'ELIGIBLE_H2_SCI': return ['eligible_h2_sci', g('result.eligible_h2_sci.desc'), st.track === 'O_LEVEL' && st.score === 'L1R5_MID' && st.amath === false ? [g('result.conditional.rec_vep1'), g('result.conditional.rec_vep2_practice'), q] : [q, g('result.eligible_h2_sci.rec_workload')]];
+    default: return ['h1_recommended', g('result.h1_recommended.desc'), [g('result.h1_recommended.rec1'), g('result.h1_recommended.rec2'), q]];
+  }
+}
+function render() {
+  var host = document.querySelector('[data-quiz]'), html;
+  var top = '<div class="quiz__top"><div class="stepdots" aria-hidden="true">' + [0, 1, 2, 3].map(function (i) { return '<i class="' + (i < Math.min(st.history.length, 4) ? 'on' : '') + '"></i>'; }).join('') + '</div>' +
+    (st.history.length ? '<div class="row"><button class="btn btn--ghost" type="button" data-back>' + I('arrow-left') + 'Back</button></div>' : '') + '</div>';
+  if (st.screen === 'WELCOME') {
+    html = '<div class="quiz"><h2>' + E(g('welcome.title')) + '</h2><p class="quiz__sub">' + E(g('welcome.subtitle')) + '</p>' +
+      '<div class="callout">' + I('info') + '<div>' + E(g('welcome.note')) + '</div></div><div class="row"><button class="btn btn--gold btn--lg" type="button" data-start>' + E(g('welcome.button')) + I('arrow-right') + '</button></div></div>';
+  } else if (st.screen === 'RESULTS') {
+    var r = result(), k = r[0];
+    html = '<div class="quiz">' + top + '<div class="verdict-card"><span class="tag">' + E(g('result.' + k + '.badge_label')) + '</span><h2>' + E(g('result.' + k + '.title')) + '</h2><p>' + E(r[1]) + '</p></div>' +
+      '<h3>' + E(g('results.actions_label') || 'What to do next') + '</h3><ul class="checks">' + r[2].filter(Boolean).map(function (x) { return '<li>' + E(x) + '</li>'; }).join('') + '</ul>' +
+      '<div class="row"><button class="btn btn--ghost" type="button" data-restart>' + I('rotate-ccw') + 'Start over</button><a class="btn" ' + ECG.linkAttrs('book-an-ecg-session') + '>' + I('calendar-check') + 'Talk it through</a><a class="btn btn--ghost" ' + ECG.linkAttrs('h2-degree-mapping-advisor') + '>See which degrees open</a></div></div>';
+  } else {
+    var s = SCREENS[st.screen](); st._opts = s.opts;
+    html = '<div class="quiz">' + top + '<h2 id="qtitle" tabindex="-1">' + E(s.t) + '</h2>' + (s.s ? '<p class="quiz__sub">' + E(s.s) + '</p>' : '') +
+      (s.note ? '<div class="callout">' + I('info') + '<div>' + E(s.note) + '</div></div>' : '') +
+      '<div class="opts" role="group" aria-labelledby="qtitle">' + s.opts.map(function (o, i) { return '<button class="opt" type="button" data-opt="' + i + '"><span><b>' + E(o[0]) + '</b>' + (o[1] ? '<small>' + E(o[1]) + '</small>' : '') + '</span>' + I('arrow-right') + '</button>'; }).join('') + '</div></div>';
+  }
+  host.innerHTML = html; host.classList.remove('panel-in'); void host.offsetWidth; host.classList.add('panel-in');
+  var h = host.querySelector('h2'); if (h && st.history.length) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+}
+function start() {
+  render();
+  var s = ECG.sheet(CONTENT_URL);
+  var apply = function (d) { var map = {}; d.rows.forEach(function (r) { if (r[0]) map[r[0]] = r[1] || ''; }); Object.keys(map).forEach(function (k) { if (map[k]) C[k] = map[k]; }); render(); };
+  if (s.cached) apply(s.cached); s.fresh.then(apply).catch(function () { });
+  document.querySelector('[data-quiz]').addEventListener('click', function (e) {
+    if (e.target.closest('[data-start]')) go('TRACK');
+    var o = e.target.closest('[data-opt]'); if (o) st._opts[+o.getAttribute('data-opt')][2]();
+    if (e.target.closest('[data-back]')) { st.screen = st.history.pop() || 'WELCOME'; render(); }
+    if (e.target.closest('[data-restart]')) { st = { screen: 'TRACK', history: [], track: null, score: null, amath: null, result: null }; render(); }
+  });
+}
+if (window.ECG) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body>
+</html>
