@@ -1071,3 +1071,27 @@ body[data-page="ecg-chatbot"] .chat { min-height: calc(100vh - var(--topbar-h) -
 .kv span { display: block; font-size: var(--fs-xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
 .qa__q > span:not(.t-acc-chevron):not(.myth__label):not(.myth__hint) { display: inline-flex; align-items: center; gap: 8px; }
 .myth .qa__q > span { display: block; }
+
+/* Planner */
+.task { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 14px 16px; border-radius: var(--r-md); background: var(--paper); border: 1px solid var(--line); }
+.task.is-done { opacity: .6; }
+.task.is-done .task__t { text-decoration: line-through; }
+.task__t { font-weight: 700; }
+.task small { display: block; color: var(--muted); font-size: var(--fs-xs); margin-top: 2px; }
+.task p { font-size: var(--fs-sm); color: var(--ink-2); margin-top: 6px; }
+.check { appearance: none; -webkit-appearance: none; width: 26px; height: 26px; margin: 2px 0 0; border-radius: 8px; border: 2px solid var(--line-strong); background: var(--paper); cursor: pointer; display: grid; place-items: center;
+  transition: background-color var(--duration-fast) var(--ease-smooth-out), border-color var(--duration-fast) var(--ease-smooth-out); }
+.check:checked { background: var(--ok); border-color: var(--ok); }
+.check:checked::after { content: ""; width: 12px; height: 7px; border: 3px solid #fff; border-top: 0; border-right: 0; transform: translateY(-2px) rotate(-45deg); }
+.iconbtn { width: 40px; height: 40px; border-radius: 50%; border: 0; background: transparent; color: var(--muted); display: grid; place-items: center; cursor: pointer; }
+.iconbtn:hover { background: var(--rose); color: var(--maroon); }
+.status { font-size: var(--fs-xs); font-weight: 700; padding: 2px 8px; border-radius: 99px; background: var(--sand); color: var(--ink-2); white-space: nowrap; }
+.status--due { background: var(--gold-100); color: #7A5600; } .status--late { background: var(--rose); color: var(--maroon); } .status--ok { background: var(--ok-100); color: var(--ok); }
+.progress { height: 10px; border-radius: 99px; background: var(--sand); overflow: hidden; }
+.progress i { display: block; height: 100%; width: 0; background: var(--ok); border-radius: 99px; transition: width var(--duration-slow) var(--ease-smooth-out); }
+.card { display: grid; gap: 10px; align-content: start; padding: 18px; border-radius: var(--r-md); background: var(--paper); border: 1px solid var(--line); }
+.card h3 { font-size: 1.12rem; color: var(--maroon); }
+.card .desc { font-size: var(--fs-sm); color: var(--ink-2); }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 14px; }
+.notes { display: grid; gap: 6px; font-size: var(--fs-sm); color: var(--ink-2); }
+.notes b { color: var(--ink); }

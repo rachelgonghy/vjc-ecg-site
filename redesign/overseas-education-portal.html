@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overseas Education Portal · ECG @ VJC</title>
+<meta name="description" content="VJC&#x27;s internal deadlines, admissions tests and scholarships for overseas universities, with a personal plan you can tick off.">
+<meta name="theme-color" content="#8C151B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,600..800,0..100,0..1;1,9..144,600..800,0..100,0..1&display=swap">
+<link rel="stylesheet" href="assets/ecg.css">
+<script src="assets/ecg.js" defer></script>
+</head>
+<body data-page="overseas-education-portal">
+<main id="main">
+  <header class="phero phero--photo">
+    <div class="wrap phero__in t-stagger">
+      <div data-crumbs class="t-stagger-line" style="display:grid;gap:14px"></div>
+      <h1 class="t-stagger-line t-stagger-line--2">Overseas Education Portal</h1>
+      <p class="lead t-stagger-line t-stagger-line--3">VJC's internal deadlines, admissions tests and scholarships, country by country. Add what applies to you to <b>My plan</b> and tick it off as you go. Your plan stays saved on this device.</p>
+      <div class="phero__actions t-stagger-line t-stagger-line--4"><a class="btn btn--ghost" href="uk.html">UK guide</a><a class="btn btn--ghost" href="us.html">US guide</a><a class="btn btn--ghost" href="eu-anz-asia.html">EU, ANZ &amp; Asia guide</a></div><figure class="phero__pic"><img src="assets/img/overseas-miyajima.webp" alt="Victorians on an overseas trip in front of the Miyajima torii gate in Japan" width="1000" height="688" decoding="async" fetchpriority="high"></figure>
+    </div>
+  </header>
+  <div class="page">
+    <div class="wrap stack">
+      <section class="block" aria-label="Overseas portal">
+        <div class="toolbar">
+          <div class="tabs-scroll"><div class="t-tabs t-tabs--lg" role="tablist" aria-label="Section" data-tabs><span class="t-tabs-pill"></span><button class="t-tab" role="tab" aria-selected="true">Countries</button><button class="t-tab" role="tab" aria-selected="false">Deadlines</button><button class="t-tab" role="tab" aria-selected="false">Admissions tests</button><button class="t-tab" role="tab" aria-selected="false">Scholarships</button><button class="t-tab" role="tab" aria-selected="false">My plan</button></div></div>
+          <div class="filters" data-countries role="group" aria-label="Country"></div>
+        </div>
+        <div data-panel aria-live="polite" style="margin-top:18px"><div class="term__skel" style="background:var(--sand);height:160px"></div></div>
+      </section>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+var SHEET_URLS = {
+  overview: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5lzrdjHSoaMJBH6H0BU2QUvog1xf9kLt-9s-Pt4opYwHEf7QKSKDdU1LRPKH1o_bJ61QioP4zATAJ/pub?gid=701656194&single=true&output=csv",
+  timeline: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5lzrdjHSoaMJBH6H0BU2QUvog1xf9kLt-9s-Pt4opYwHEf7QKSKDdU1LRPKH1o_bJ61QioP4zATAJ/pub?gid=2054466297&single=true&output=csv",
+  tests: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5lzrdjHSoaMJBH6H0BU2QUvog1xf9kLt-9s-Pt4opYwHEf7QKSKDdU1LRPKH1o_bJ61QioP4zATAJ/pub?gid=0&single=true&output=csv",
+  scholarships: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5lzrdjHSoaMJBH6H0BU2QUvog1xf9kLt-9s-Pt4opYwHEf7QKSKDdU1LRPKH1o_bJ61QioP4zATAJ/pub?gid=1619526654&single=true&output=csv"
+};
+/* Same storage key as the previous portal, so students keep the plan they already built. */
+var STORAGE_KEY = 'vjc_overseas_tracker_v3';
+/* ---- Parsers, text formatting and preset plans carried over unchanged from the previous version ---- */
+function parseCSV(text) {
+  const rows = [];
+  let row = [""];
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i], n = text[i + 1];
+    if (c === '"') {
+      if (inQuotes && n === '"') { row[row.length - 1] += '"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if (c === "," && !inQuotes) {
+      row.push("");
+    } else if ((c === "\r" || c === "\n") && !inQuotes) {
+      if (c === "\r" && n === "\n") i++;
+      rows.push(row); row = [""];
+    } else {
+      row[row.length - 1] += c;
+    }
+  }
+  if (row.length > 1 || row[0] !== "") rows.push(row);
+  return rows;
+}
+
+function parseOverviewRows(rows) {
+  if (rows.length < 2) return [];
+  const items = [];
+  let country = "", courses = "";
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (r.length < 2) continue;
+    const rc = (r[0] || "").trim(), ru = (r[1] || "").trim(), ap = (r[2] || "").trim(), tr = (r[3] || "").trim(), id = (r[4] || "").trim(), nt = (r[5] || "").trim(), fe = (r[6] || "").trim();
+    if (rc) { if (rc !== country) { country = rc; courses = ru || "All"; } else if (ru) courses = ru; }
+    else if (ru) courses = ru;
+    if (!country && !courses && !ap && !tr && !id && !nt && !fe) continue;
+    items.push({ id: 'ov-' + i, country: country || "Other", courses: courses || "All", appPeriod: ap, testsRequired: tr, intakeDate: id, notes: nt, averageFees: fe });
+  }
+  return items;
+}
+
+function parseTimelineRows(rows) {
+  if (rows.length < 2) return [];
+  const items = [];
+  let country = "", university = "";
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (r.length < 2) continue;
+    const rc = (r[0] || "").trim(), ru = (r[1] || "").trim(), rd = (r[2] || "").trim(), rt = (r[3] || "").trim(), rr = (r[4] || "").trim();
+    if (rc) country = rc;
+    if (ru) university = ru;
+    if (rd || rt) items.push({ id: 'tl-' + i, country: country || "US", university: university || "All Universities", keyDate: rd, courses: university, thingsToDo: rt, usefulResources: rr });
+  }
+  return items;
+}
+
+function parseTestsRows(rows) {
+  if (rows.length < 2) return [];
+  const items = [];
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (r.length < 4) continue;
+    const testName = (r[1] || "").trim();
+    if (!testName) continue;
+    items.push({ id: 'test-' + i, testName, cost: (r[2] || "").trim(), region: (r[3] || "").trim(), universities: (r[5] || "").trim(), courses: (r[6] || "").trim(), registrationWindow: (r[7] || "").trim(), testingWindow: (r[8] || "").trim(), examFormat: (r[11] || "").trim(), howYouAreScored: (r[12] || "").trim(), notes: (r[13] || "").trim(), testAdministrator: (r[14] || "").trim() });
+  }
+  return items;
+}
+
+function parseScholarshipsRows(rows) {
+  if (rows.length < 2) return [];
+  const items = [];
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (r.length < 3) continue;
+    const name = (r[3] || "").trim();
+    if (!name) continue;
+    items.push({ id: 'sch-' + i, region: (r[1] || "").trim(), type: (r[2] || "").trim(), name, description: (r[4] || "").trim(), whatIsCovered: (r[5] || "").trim(), deadline: (r[6] || "").trim(), selectionProcess: (r[7] || "").trim(), notes: (r[8] || "").trim(), learnMore: (r[9] || "").trim() });
+  }
+  return items;
+}
+
+function escapeHtml(str) {
+  return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
+function richText(str, opts) {
+  opts = opts || {};
+  if (!str) return { __html: "" };
+  let html = escapeHtml(str);
+  const linkStyle = 'color:var(--color-link);font-weight:600;text-decoration:underline;';
+
+  html = html.replace(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4})/gi, (m) => `<a href="mailto:${m}" style="${linkStyle}">${m}</a>`);
+
+  if (opts.hereLinks) {
+    const rules = [
+      { test: /register to ucas[^\n]*?\b(here|link)\b/i, url: 'https://sites.google.com/vjc.edu.sg/vjc-ucas/home' },
+      { test: /submit[^\n]*?vjc portal[^\n]*?\b(here)\b/i, url: 'https://drive.google.com/file/d/1Tgt8SHAPpOys12nGJOvNq7W9n6ACnCsC/view?usp=sharing' },
+      { test: /uk application resources[^\n]*?\b(here)\b/i, url: 'https://sites.google.com/vjc.edu.sg/ecgvjc/university-applications/overseas-universities/uk' },
+      { test: /us application resources[^\n]*?\b(here)\b/i, url: 'https://sites.google.com/vjc.edu.sg/ecgvjc/university-applications/overseas-universities/us' },
+      { test: /common app[^\n]*?\b(here|link)\b/i, url: 'https://docs.google.com/presentation/d/1AKxEHX9LIaaxKpO3Fq_8BZXAYq3GU7VCf1kVpLYaP18/present' },
+      { test: /personal essays[^\n]*?\b(here|link)\b/i, url: 'https://drive.google.com/file/d/1CSji09ayK_9ZhqlgFGnqaizlCTSNfX0N/view' },
+      { test: /briefing document[^\n]*?\b(here|link)\b/i, url: 'https://drive.google.com/file/d/1E19qYJ9dRZlKc0U5AC9W5x1uK4dsG0ZW/view' },
+      { test: /csca guidebook[^\n]*?\b(here)\b/i, url: 'https://www.china-admissions.com/wp-content/uploads/2025/11/CSCA-Guidebook.pdf' },
+      { test: /step-by-step process[^\n]*?\b(here)\b/i, url: 'https://docs.google.com/presentation/d/1qCOiD2uP40BUmn6PrLPcWi3c2plJfFdJ/edit?usp=sharing&ouid=104157908169334094503&rtpof=true&sd=true' },
+      { test: /recommendation letters[^\n]*?\b(here)\b/i, url: 'https://docs.google.com/presentation/d/1qCOiD2uP40BUmn6PrLPcWi3c2plJfFdJ/edit?usp=sharing&ouid=104157908169334094503&rtpof=true&sd=true' },
+      { test: /french embassy[^\n]*?\b(here)\b/i, url: 'https://drive.google.com/file/d/1ZCB_DjrpNN82z7XBnaiGb0uUevXr4Z-c/view?usp=sharing' },
+      { test: /french university courses taught in english[^\n]*?\b(here)\b/i, url: 'https://taughtie.campusfrance.org/tiesearch/index.html#/catalog' },
+      { test: /please find all the courses in english[^\n]*?\b(here)\b/i, url: 'https://taughtie.campusfrance.org/tiesearch/index.html#/catalog' },
+      { test: /please find all the japan university courses taught in english found[^\n]*?\b(here)\b/i, url: 'https://docs.google.com/spreadsheets/d/1dKEUxWgaNpwwaSLxbvkfHMxu2cTeoPTE/edit?usp=sharing&ouid=104157908169334094503&rtpof=true&sd=true' },
+      { test: /indicate your interest[^\n]*?\b(here)\b/i, url: 'https://docs.google.com/presentation/d/1qCOiD2uP40BUmn6PrLPcWi3c2plJfFdJ/edit?usp=sharing&ouid=104157908169334094503&rtpof=true&sd=true' },
+      { test: /find the schedule at the link (here)\b/i, url: 'https://www.sg.emb-japan.go.jp/itpr_en/culture.html', after: ' (scroll all the way down)' },
+      { test: /mock tests?[^\n]*?\b(here)\b/i, url: 'https://www.crosslineedu.com/blog/free-csca-mock-exams-official-sample-tests?spm=..article_22e1a49f-a434-420f-80e6-f14f42179c9f.article_1.1' },
+    ];
+    rules.forEach(rule => {
+      html = html.replace(rule.test, (m, word) => m.slice(0, m.length - word.length) + `<a href="${rule.url}" target="_blank" rel="noopener noreferrer" style="${linkStyle}">${word}</a>${rule.after || ''}`);
+    });
+  }
+
+  if (opts.overviewStyle) {
+    html = html.replace(/\b(JC2|JC3)\b/g, '<u style="text-decoration-color:var(--color-brand-primary);font-weight:700;">$1</u>');
+    const months = '(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)';
+    const re = new RegExp('\\b(' + months + '(?:\\s*(?:to|-|–|—)\\s*' + months + ')?)\\b', 'gi');
+    html = html.replace(re, '<strong style="background:var(--gold-100);color:var(--gold-900);padding:1px 6px;border-radius:var(--radius-sm);border:1px solid var(--gold-300);">$1</strong>');
+  }
+
+  html = html.replace(/Math,?\s*Physics\s*&amp;\s*Chemistry/gi, m => `<strong style="text-decoration:underline;">${m}</strong>`);
+  html = html.replace(/Professional Chinese\s*\(STEM\s*\/\s*Humanities\)/gi, m => `<strong style="text-decoration:underline;">${m}</strong>`);
+
+  html = html.replace(/(<a\b[^>]*>.*?<\/a>)|(https?:\/\/[^\s<>'"]+)/gi, (m, a, rawUrl) => {
+    if (a) return a;
+    let url = rawUrl, suffix = '';
+    const pm = url.match(/[.,;:!?)]+$/);
+    if (pm) { suffix = pm[0]; url = url.slice(0, -suffix.length); }
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="${linkStyle}word-break:break-all;">${url}</a>` + suffix;
+  });
+
+  // readability: bold lead-in labels, key dates, test names and emphasis words; real bullet lists
+  const B = '<strong style="color:var(--color-text-primary);font-weight:700;">';
+  if (!opts.overviewStyle) {
+    const mon = '(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)';
+    html = html.replace(new RegExp('(?<![\\w/>])(\\d{1,2}(?:st|nd|rd|th)?\\s+' + mon + '(?:\\s+\\d{4})?|' + mon + '\\s+\\d{1,2}(?:st|nd|rd|th)?(?:,?\\s+\\d{4})?)\\b(?![^<]*<\\/a>)', 'g'), B + '$1</strong>');
+  }
+  html = html.replace(/\b(SAT|ACT|UCAT|LNAT|ESAT|TMUA|TARA|BMAT|IELTS|TOEFL|CSCA|HSK|JLPT|EJU)\b(?![^<]*<\/a>)(?![^<]*">)/g, B + '$1</strong>');
+  html = html.replace(/\b(IF|MUST|NOT|ONLY|DO NOT|BEFORE|AFTER|NO LATER THAN)\b(?![^<]*<\/a>)/g, (m) => B + m.charAt(0) + m.slice(1).toLowerCase() + '</strong>');
+  const lines = html.split('\n');
+  const out = []; let list = null;
+  const bulletRe = /^\s*(?:[-•*●▪–]|\d{1,2}[.)])\s+/;
+  lines.forEach(line => {
+    let l = line.trim();
+    const lead = l.replace(bulletRe, '');
+    const lab = lead.match(/^([A-Z][^:<>]{1,45}):(\s|$)/);
+    const body = lab ? B + lab[1] + ':</strong>' + lead.slice(lab[0].length - lab[2].length) : lead;
+    if (bulletRe.test(l)) {
+      if (!list) { list = []; }
+      list.push('<li style="margin:0 0 6px;padding-left:2px;">' + body + '</li>');
+    } else {
+      if (list) { out.push('<ul style="margin:6px 0 10px;padding-left:20px;">' + list.join('') + '</ul>'); list = null; }
+      out.push(l === '' ? '<span style="display:block;height:10px;"></span>' : body + '<br>');
+    }
+  });
+  if (list) out.push('<ul style="margin:6px 0 10px;padding-left:20px;">' + list.join('') + '</ul>');
+  html = out.join('').replace(/(<br>)+(<ul)/g, '$2').replace(/<br>$/, '');
+
+  return { __html: html };
+}
+
+function splitNotesLines(str) {
+  if (!str) return [];
+  return str.split(/\n+/).map(l => l.trim()).filter(Boolean).map(line => {
+    const m = line.match(/^([A-Za-z' /]{3,40}):\s*(.+)$/);
+    return m ? { label: m[1], value: m[2] } : { label: '', value: line };
+  });
+}
+
+function getTestOfficialUrl(name) {
+  const n = (name || '').toUpperCase();
+  if (n.includes('SAT')) return 'https://satsuite.collegeboard.org/sat';
+  if (n.includes('UCAT')) return 'https://www.ucat.ac.uk/';
+  if (n.includes('LNAT')) return 'https://lnat.ac.uk/';
+  if (n.includes('ESAT')) return 'https://esat-test.org/';
+  if (n.includes('TMUA')) return 'https://www.tmuatest.org.uk/';
+  if (n.includes('IELTS')) return 'https://www.ielts.org/';
+  return 'https://www.google.com/search?q=register+for+' + encodeURIComponent(name || '') + '+admissions+test';
+}
+
+function countryAccent(country) {
+  const c = (country || '').toUpperCase();
+  if (c.includes('UK')) return 'var(--info-600)';
+  if (c.includes('US')) return 'var(--success-600)';
+  return 'var(--gold-500)';
+}
+
+function makePreset(timestamp) {
+  return {
+    oxbridge: [
+      { id: 'ox-1-' + timestamp, category: 'UK', university: 'Oxford OR Cambridge', title: 'VJC personal statement upload & predicted grades request', deadline: '22 June 2026', things: 'Submit personal statement into the VJC portal. Inform tutors of intention to apply and request tutor comments and predicted grades. Register for a UCAS account and pay the fee. Fill in the UCAS form without the personal statement first.' },
+      { id: 'ox-2-' + timestamp, category: 'UK', university: 'Oxford OR Cambridge', title: 'Final student UCAS completion & final statement draft', deadline: '26 August 2026', things: 'Complete the UCAS form and add the personal statement. This is the final student deadline for UCAS — no more changes after this date.' },
+      { id: 'ox-3-' + timestamp, category: 'UK', university: 'Oxford / Cambridge', title: 'Check and book Oxbridge subject admission tests', deadline: 'September 2026', things: 'Oxbridge subjects often require specialised entry tests (e.g. TMUA, ESAT). Confirm booking requirements immediately with the VJC exams office.' },
+    ],
+    medicine: [
+      { id: 'med-1-' + timestamp, category: 'UK', university: 'All UK (Medicine/Vet/Dentistry)', title: 'Medicine: personal statement VJC internal portal submission', deadline: '22 June 2026', things: 'Submit the personal statement draft into the VJC portal. Inform tutors of intention to apply and request tutor comments and predicted grades. Register for a UCAS account.' },
+      { id: 'med-2-' + timestamp, category: 'UK', university: 'All UK (Medicine/Vet/Dentistry)', title: 'Medicine: final student UCAS upload', deadline: '31 August 2026', things: 'Complete the UCAS form and add the personal statement — the final student deadline for Medicine, Veterinary Medicine and Dentistry applications.' },
+    ],
+    general: [
+      { id: 'gen-1-' + timestamp, category: 'UK', university: 'UK unis (except Oxbridge/Med)', title: 'Request VJC predicted grades & UCAS account login', deadline: '28 September 2026', things: 'Submit the personal statement into the VJC portal. Inform tutors of intention to apply and request comments and predicted grades.' },
+      { id: 'gen-2-' + timestamp, category: 'UK', university: 'UK unis (except Oxbridge/Med)', title: 'General UK final UCAS completion', deadline: '26 October 2026', things: 'Complete the UCAS form and add the personal statement — the final student deadline for general UCAS registrations.' },
+    ],
+    us: [
+      { id: 'us-1-' + timestamp, category: 'US', university: 'Common App systems', title: 'US Common App account setup & college search profile', deadline: 'Ongoing', things: 'Register a Common App profile, select target schools, and browse individual essay supplements.' },
+      { id: 'us-2-' + timestamp, category: 'US', university: 'All US colleges', title: 'Confirm VJC teacher evaluations & counsellor recommendations', deadline: 'September 2026', things: 'Locate two subject teachers and your Civics Tutor. Secure approval to write reviews and add their emails in the Common App recommendations portal.' },
+      { id: 'us-3-' + timestamp, category: 'US', university: 'Common App core essay', title: 'Draft 650-word Common App personal essay', deadline: 'October 2026', things: 'Write the core US college statement based on a chosen Common App prompt. Let counsellors read drafts.' },
+    ],
+  };
+}
+
+
+var E = function (s) { return ECG.esc(s); }, I = function (n) { return ECG.icon(n); };
+var R = function (s) { return richText(s).__html; };
+var data = { overview: [], timeline: [], tests: [], scholarships: [] }, tab = 0, country = 'All', tasks = [];
+try { tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch (e) { }
+function persist() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); } catch (e) { } }
+function status(deadline) {
+  if (!deadline || /tbc|ongoing/i.test(deadline)) return ['Flexible', ''];
+  var p = Date.parse(deadline); if (isNaN(p)) return ['Plannable', ''];
+  var d = Math.ceil((p - Date.now()) / 864e5);
+  return d < 0 ? ['Overdue', 'late'] : d <= 14 ? ['Due in ' + d + 'd', 'due'] : ['In ' + d + ' days', 'ok'];
+}
+function inCountry(c) { return country === 'All' || String(c || '').toUpperCase().indexOf(country.toUpperCase()) > -1; }
+function has(id) { return tasks.some(function (t) { return t.id === id; }); }
+function addBtn(id, payload) { return has(id) ? '<span class="tag tag--ok">' + I('check') + 'In your plan</span>' : '<button class="btn btn--ghost" type="button" data-add=\'' + E(JSON.stringify(payload)) + '\'>' + I('list-checks') + 'Add to my plan</button>'; }
+function countries() {
+  var s = new Set(); data.overview.forEach(function (o) { s.add(o.country); }); data.timeline.forEach(function (o) { s.add(o.country); });
+  return ['All'].concat(Array.from(s).filter(Boolean));
+}
+function render() {
+  var cs = countries();
+  document.querySelector('[data-countries]').innerHTML = tab === 4 ? '' : cs.map(function (c) { return '<button type="button" class="chip' + (c === country ? ' is-active' : '') + '" aria-pressed="' + (c === country) + '" data-country="' + E(c) + '">' + E(c) + '</button>'; }).join('');
+  var done = tasks.filter(function (t) { return t.completed; }).length;
+  document.querySelectorAll('[data-tabs] .t-tab')[4].textContent = 'My plan (' + tasks.length + ')';
+  var out = document.querySelector('[data-panel]'), html = '';
+  if (tab === 0) {
+    var by = {}; data.overview.filter(function (o) { return inCountry(o.country); }).forEach(function (o) { (by[o.country] = by[o.country] || []).push(o); });
+    html = Object.keys(by).map(function (c) {
+      return '<div class="group-title" style="margin-top:8px">' + E(c) + '</div><div class="cards">' + by[c].map(function (o) {
+        var kv = [['Applications', o.appPeriod], ['Tests', o.testsRequired], ['Intake', o.intakeDate], ['Average fees', o.averageFees]].filter(function (x) { return x[1]; });
+        return '<div class="card"><h3>' + E(o.courses) + '</h3><div class="kv">' + kv.map(function (x) { return '<div><span>' + x[0] + '</span>' + R(x[1]) + '</div>'; }).join('') + '</div>' +
+          (o.notes ? '<div class="notes">' + splitNotesLines(o.notes).map(function (n) { return '<div>' + (n.label ? '<b>' + E(n.label) + ':</b> ' : '') + R(n.value) + '</div>'; }).join('') + '</div>' : '') + '</div>';
+      }).join('') + '</div>';
+    }).join('');
+  } else if (tab === 1) {
+    var list = data.timeline.filter(function (o) { return inCountry(o.country); });
+    html = '<div class="journey-list">' + list.map(function (o) {
+      var st = status(o.keyDate);
+      return '<div class="task" style="grid-template-columns:minmax(0,1fr) auto"><div><div class="row" style="gap:6px"><span class="tag tag--maroon">' + E(o.country) + '</span><span class="status status--' + st[1] + '">' + st[0] + '</span></div>' +
+        '<div class="task__t" style="margin-top:6px">' + E(o.keyDate) + ' · ' + E(o.university) + '</div><p>' + R(o.thingsToDo) + '</p>' + (o.usefulResources ? '<p>' + R(o.usefulResources) + '</p>' : '') + '</div>' +
+        addBtn('task-' + o.id, { id: 'task-' + o.id, title: o.university + ' — ' + o.keyDate, university: o.university, category: o.country, deadline: o.keyDate, things: o.thingsToDo, completed: false, notes: '' }) + '</div>';
+    }).join('') + '</div>';
+  } else if (tab === 2) {
+    html = '<div class="cards">' + data.tests.filter(function (t) { return inCountry(t.region); }).map(function (t) {
+      var kv = [['Cost', t.cost], ['Register', t.registrationWindow], ['Sit the test', t.testingWindow], ['Format', t.examFormat], ['Scoring', t.howYouAreScored], ['Run by', t.testAdministrator]].filter(function (x) { return x[1]; });
+      return '<div class="card"><div class="row" style="gap:6px">' + t.region.split(';').map(function (r) { return r.trim() ? '<span class="tag tag--maroon">' + E(r.trim()) + '</span>' : ''; }).join('') + '</div><h3>' + E(t.testName) + '</h3>' +
+        (t.universities || t.courses ? '<p class="desc">For ' + E([t.courses, t.universities].filter(Boolean).join(' at ')) + '</p>' : '') +
+        '<div class="kv">' + kv.map(function (x) { return '<div><span>' + x[0] + '</span>' + R(x[1]) + '</div>'; }).join('') + '</div>' + (t.notes ? '<p class="desc">' + R(t.notes) + '</p>' : '') +
+        '<div class="row"><a class="btn btn--ghost" href="' + E(getTestOfficialUrl(t.testName)) + '" target="_blank" rel="noopener">' + I('external-link') + 'Official site</a>' +
+        addBtn('test-track-' + t.id, { id: 'test-track-' + t.id, title: t.testName + ' registration / testing', university: t.testAdministrator || t.testName, category: t.region.split(';')[0] || 'Test', deadline: (t.registrationWindow || 'TBC').split('\n')[0], things: 'Cost: ' + t.cost + '. Testing window: ' + t.testingWindow + '.', completed: false, notes: '' }) + '</div></div>';
+    }).join('') + '</div>';
+  } else if (tab === 3) {
+    html = '<div class="cards">' + data.scholarships.filter(function (s) { return inCountry(s.region); }).map(function (s) {
+      var st = status((s.deadline || '').split('\n')[0]);
+      return '<div class="card"><div class="row" style="gap:6px">' + (s.region ? '<span class="tag tag--maroon">' + E(s.region) + '</span>' : '') + (s.type ? '<span class="tag">' + E(s.type) + '</span>' : '') + '<span class="status status--' + st[1] + '">' + st[0] + '</span></div><h3>' + E(s.name) + '</h3>' +
+        (s.description ? '<p class="desc">' + R(s.description) + '</p>' : '') +
+        '<div class="kv">' + [['Deadline', s.deadline], ['Covers', s.whatIsCovered], ['Selection', s.selectionProcess]].filter(function (x) { return x[1]; }).map(function (x) { return '<div><span>' + x[0] + '</span>' + R(x[1]) + '</div>'; }).join('') + '</div>' +
+        (s.notes ? '<p class="desc">' + R(s.notes) + '</p>' : '') + '<div class="row">' + (/^https?:/.test(s.learnMore) ? '<a class="btn btn--ghost" href="' + E(s.learnMore) + '" target="_blank" rel="noopener">Learn more' + I('arrow-up-right') + '</a>' : '') +
+        addBtn('scholarship-track-' + s.id, { id: 'scholarship-track-' + s.id, title: s.name + ' — application step', university: s.name + ' (' + s.type + ')', category: s.region || 'Scholarship', deadline: (s.deadline || 'TBC').split('\n')[0], things: 'What is covered: ' + s.whatIsCovered + '. Selection steps: ' + s.selectionProcess, completed: false, notes: '' }) + '</div></div>';
+    }).join('') + '</div>';
+  } else {
+    html = '<div class="split" style="align-items:center"><div><b>' + done + ' of ' + tasks.length + ' done</b><div class="progress" style="margin-top:8px"><i style="width:' + (tasks.length ? done / tasks.length * 100 : 0) + '%"></i></div></div>' +
+      '<div class="row" style="justify-content:flex-end"><span class="syncnote">Start from a plan:</span>' + [['oxbridge', 'Oxbridge'], ['medicine', 'UK Medicine'], ['general', 'UK general'], ['us', 'US']].map(function (p) { return '<button class="chip" type="button" data-preset="' + p[0] + '">' + p[1] + '</button>'; }).join('') + '</div></div>' +
+      '<form class="split" data-addform style="margin-top:18px;align-items:end"><div class="field"><label for="nt">Add your own step</label><input id="nt" class="input" placeholder="e.g. Email Prof. X about the summer school" required></div>' +
+      '<div class="row" style="flex-wrap:nowrap"><div class="field" style="flex:1"><label for="nd">Deadline</label><input id="nd" class="input" placeholder="e.g. 15 January 2027"></div><button class="btn" type="submit" style="align-self:end">Add</button></div></form>' +
+      '<div class="journey-list" style="margin-top:18px">' + (tasks.length ? tasks.slice().sort(function (a, b) { return (a.completed - b.completed) || ((Date.parse(a.deadline) || 9e15) - (Date.parse(b.deadline) || 9e15)); }).map(function (t) {
+        var st = status(t.deadline);
+        return '<div class="task' + (t.completed ? ' is-done' : '') + '"><input class="check" type="checkbox" aria-label="Done: ' + E(t.title) + '" data-toggle="' + E(t.id) + '"' + (t.completed ? ' checked' : '') + '>' +
+          '<div><div class="task__t">' + E(t.title) + '</div><small>' + E(t.university || '') + (t.category ? ' · ' + E(t.category) : '') + ' · ' + E(t.deadline || 'No date') + '</small>' + (t.things ? '<p>' + R(t.things) + '</p>' : '') + '</div>' +
+          '<div class="row" style="gap:4px;flex-wrap:nowrap"><span class="status status--' + st[1] + '">' + (t.completed ? 'Done' : st[0]) + '</span><button class="iconbtn" type="button" aria-label="Remove ' + E(t.title) + '" data-del="' + E(t.id) + '">' + I('x') + '</button></div></div>';
+      }).join('') : '<div class="empty">Your plan is empty. Add deadlines, tests or scholarships from the other tabs, or start from a plan above.</div>') + '</div>';
+  }
+  out.innerHTML = html || '<div class="empty">Nothing here for ' + E(country) + ' yet.</div>';
+  out.classList.remove('panel-in'); void out.offsetWidth; out.classList.add('panel-in');
+}
+function start() {
+  render();
+  ['overview', 'timeline', 'tests', 'scholarships'].forEach(function (k) {
+    var parse = { overview: parseOverviewRows, timeline: parseTimelineRows, tests: parseTestsRows, scholarships: parseScholarshipsRows }[k];
+    var s = ECG.sheet(SHEET_URLS[k]);
+    var apply = function (d) { data[k] = parse([d.head].concat(d.rows)); render(); };
+    if (s.cached) apply(s.cached); s.fresh.then(apply).catch(function () { });
+  });
+  document.querySelector('[data-tabs]').addEventListener('tabchange', function (e) { tab = e.detail.index; render(); });
+  var main = document.querySelector('main');
+  main.addEventListener('click', function (e) {
+    var c = e.target.closest('[data-country]'); if (c) { country = c.getAttribute('data-country'); render(); }
+    var a = e.target.closest('[data-add]'); if (a) { var t = JSON.parse(a.getAttribute('data-add')); if (!has(t.id)) { tasks.unshift(t); persist(); } render(); }
+    var d = e.target.closest('[data-del]'); if (d) { tasks = tasks.filter(function (t) { return t.id !== d.getAttribute('data-del'); }); persist(); render(); }
+    var p = e.target.closest('[data-preset]'); if (p) { (makePreset(Date.now())[p.getAttribute('data-preset')] || []).forEach(function (t) { if (!tasks.some(function (x) { return x.title === t.title; })) tasks.push(Object.assign({ completed: false, notes: '' }, t)); }); persist(); render(); }
+  });
+  main.addEventListener('change', function (e) { var id = e.target.getAttribute('data-toggle'); if (id) { tasks.forEach(function (t) { if (t.id === id) t.completed = e.target.checked; }); persist(); render(); } });
+  main.addEventListener('submit', function (e) {
+    if (!e.target.matches('[data-addform]')) return; e.preventDefault();
+    var title = document.getElementById('nt').value.trim(); if (!title) return;
+    tasks.unshift({ id: 'custom-' + Date.now(), title: title, university: 'My own step', category: '', deadline: document.getElementById('nd').value.trim() || 'Ongoing', things: '', completed: false, notes: '' }); persist(); render();
+  });
+}
+if (window.ECG) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body>
+</html>
