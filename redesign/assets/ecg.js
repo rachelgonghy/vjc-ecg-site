@@ -366,12 +366,21 @@
     opts = opts || {};
     var key = 'ecg:' + url; var cached = null;
     try { cached = JSON.parse(sessionStorage.getItem(key) || 'null'); } catch (e) { }
-    var ctrl = window.AbortController ? new AbortController() : null;
-    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, opts.timeout || 9000);
-    var fresh = fetch(url + (url.indexOf('?') > -1 ? '&' : '?') + '_ts=' + Date.now(), { cache: 'no-store', signal: ctrl && ctrl.signal })
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+    var get = function (u, ms) {
+      var ctrl = window.AbortController ? new AbortController() : null;
+      var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, ms);
+      return fetch(u, { cache: 'no-store', signal: ctrl && ctrl.signal })
+        .then(function (r) { clearTimeout(timer); if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+        .then(function (t) { if (!t || /^\s*</.test(t)) throw new Error('not CSV'); return t; });
+    };
+    var direct = url + (url.indexOf('?') > -1 ? '&' : '?') + '_ts=' + Date.now();
+    // Google's published-CSV redirect sometimes drops CORS headers. Like the previous version of
+    // the site, fall back to public CORS proxies in turn before giving up.
+    var PROXIES = ['https://api.allorigins.win/raw?url=', 'https://corsproxy.io/?url='];
+    var fresh = PROXIES.reduce(function (p, px) {
+      return p.catch(function () { return get(px + encodeURIComponent(url), 8000); });
+    }, get(direct, opts.timeout || 9000))
       .then(function (t) {
-        clearTimeout(timer);
         var rows = parseCSV(t); if (rows.length < 2) throw new Error('empty');
         var head = rows[0].map(function (h) { return h.trim().toLowerCase(); });
         // { head: [...], rows: [[raw cells]...], items: [{header: value}...] }

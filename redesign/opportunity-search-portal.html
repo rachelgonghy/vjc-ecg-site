@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opportunity Search Portal · ECG @ VJC</title>
+<meta name="description" content="Competitions, internships, scholarships, workshops and programmes for VJC students, filtered by interest.">
+<meta name="theme-color" content="#8C151B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,600..800,0..100,0..1;1,9..144,600..800,0..100,0..1&display=swap">
+<link rel="stylesheet" href="assets/ecg.css">
+<script src="assets/ecg.js" defer></script>
+</head>
+<body data-page="opportunity-search-portal">
+<main id="main">
+  <header class="phero">
+    <div class="wrap phero__in t-stagger">
+      <div data-crumbs class="t-stagger-line" style="display:grid;gap:14px"></div>
+      <h1 class="t-stagger-line t-stagger-line--2">Find opportunities</h1>
+      <p class="lead t-stagger-line t-stagger-line--3">Competitions, internships, scholarships, workshops and programmes to build your portfolio. Filter by what you're into, and add the ones you like to your calendar.</p>
+      
+    </div>
+  </header>
+  <div class="page">
+    <div class="wrap stack">
+      <section class="block" aria-label="Search and filter">
+        <div class="toolbar">
+          <div class="tabs-scroll"><div class="t-tabs t-tabs--lg" role="tablist" aria-label="Show" data-tabs><span class="t-tabs-pill"></span><button class="t-tab" role="tab" aria-selected="true">Upcoming</button><button class="t-tab" role="tab" aria-selected="false">Past</button><button class="t-tab" role="tab" aria-selected="false">All</button><button class="t-tab" role="tab" aria-selected="false">Communities</button></div></div>
+          <div class="toolbar__top">
+            <div class="searchfield"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-search"/></svg><input class="input" type="search" placeholder="Search, e.g. medicine, hackathon, NUS" aria-label="Search opportunities" data-q></div>
+            <label class="sr-only" for="sort">Sort by</label>
+            <select id="sort" class="select" data-sort><option value="reg">Closing soonest</option><option value="ev">Happening soonest</option><option value="name">Name A–Z</option></select>
+          </div>
+          <div class="qa t-acc" data-open="false" style="background:transparent;border:0">
+            <button class="qa__q" type="button" style="padding:4px 0;min-height:44px"><span><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-filter"/></svg> Filters<span data-nfilters></span></span></button>
+            <div class="t-acc-panel"><div class="t-acc-panel-inner"><div class="filterbar" style="padding:6px 0 4px">
+              <div class="filterbar__row"><span class="filterbar__label">Type</span><div class="filters" data-f-type role="group" aria-label="Type"></div></div>
+              <div class="filterbar__row"><span class="filterbar__label">Level</span><div class="filters" data-f-level role="group" aria-label="Level"></div></div>
+              <div class="filterbar__row filtergroup"><span class="filterbar__label">Interest</span><div class="filters" data-f-subject role="group" aria-label="Industry interest"></div></div>
+            </div></div></div>
+          </div>
+          <div class="row" style="justify-content:space-between"><span class="syncnote" data-count aria-live="polite">Loading opportunities…</span><button class="linkbtn" type="button" data-clear>Clear search and filters</button></div>
+        </div>
+      </section>
+      <div data-list aria-live="polite"><div class="empty">Loading opportunities…</div></div>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+var SHEET = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQljtaq_7vheqd56NZ7gb-GiRYdeAg3pqfImXJtG1hUCDdvLgGR7Nypb6_iZ6eDCszlVu8qu0n2Awzy/pub?gid=0&single=true&output=csv';
+var GROUPS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQljtaq_7vheqd56NZ7gb-GiRYdeAg3pqfImXJtG1hUCDdvLgGR7Nypb6_iZ6eDCszlVu8qu0n2Awzy/pub?gid=470211783&single=true&output=csv';
+/* ---- Google Calendar helpers carried over unchanged from the previous version of this page ---- */
+const GCAL_MONTHS = { jan:1, feb:2, mar:3, apr:4, may:5, jun:6, jul:7, aug:8, sep:9, sept:9, oct:10, nov:11, dec:12 };
+function gcMonth(w) { return GCAL_MONTHS[String(w || '').toLowerCase().slice(0, 4)] || GCAL_MONTHS[String(w || '').toLowerCase().slice(0, 3)] || 0; }
+function gcPad(n) { return String(n).padStart(2, '0'); }
+function gcYmd(y, m, d) { return '' + y + gcPad(m) + gcPad(d); }
+function gcNextDay(y, m, d) { const t = new Date(Date.UTC(y, m - 1, d + 1)); return gcYmd(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate()); }
+// Returns { y, m, d, endY, endM, endD } for the first date (or range) in a cell, or null.
+function gcParseDate(str) {
+  const s = String(str || '').split(/;|\|/)[0].trim();
+  if (!s || s === '-' || s === '—') return null;
+  let x = s.match(/([A-Za-z]{3,})\s+(\d{1,2})(?:\s*[-–]\s*(\d{1,2}))?,?\s+(\d{4})/);
+  if (x && gcMonth(x[1])) { const m = gcMonth(x[1]), y = +x[4]; return { y, m, d: +x[2], endY: y, endM: m, endD: x[3] ? +x[3] : +x[2] }; }
+  x = s.match(/(\d{1,2})\s*[-–]\s*(\d{1,2})\s+([A-Za-z]{3,})\s+(\d{4})/);
+  if (x && gcMonth(x[3])) { const m = gcMonth(x[3]), y = +x[4]; return { y, m, d: +x[1], endY: y, endM: m, endD: +x[2] }; }
+  x = s.match(/(\d{1,2})\s+([A-Za-z]{3,})\s*[-–]\s*(\d{1,2})\s+([A-Za-z]{3,})\s+(\d{4})/);
+  if (x && gcMonth(x[2]) && gcMonth(x[4])) { const y = +x[5]; return { y, m: gcMonth(x[2]), d: +x[1], endY: y, endM: gcMonth(x[4]), endD: +x[3] }; }
+  x = s.match(/(\d{1,2})[^A-Za-z]*?([A-Za-z]{3,})[^\d]*(?:.*?)(\d{4})/);
+  if (x && gcMonth(x[2])) { const m = gcMonth(x[2]), y = +x[3]; return { y, m, d: +x[1], endY: y, endM: m, endD: +x[1] }; }
+  return null;
+}
+// Returns { sh, sm, eh, em } in 24h, or null when the timing isn't a clear time range.
+function gcParseTime(str) {
+  const s = String(str || '').replace(/\s+/g, ' ').trim();
+  if (!s || /\|/.test(s)) return null;
+  const to24 = (h, ap) => { h = +h % 12; return /p/i.test(ap) ? h + 12 : h; };
+  let x = s.match(/(\d{1,2})(?:[:.](\d{2}))?\s*(AM|PM)?\s*(?:-|–|to)\s*(\d{1,2})(?:[:.](\d{2}))?\s*(AM|PM)/i);
+  if (x) {
+    const eh = to24(x[4], x[6]), em = +(x[5] || 0);
+    let sh = to24(x[1], x[3] || x[6]); const smin = +(x[2] || 0);
+    if (!x[3] && (sh * 60 + smin) >= (eh * 60 + em)) sh = to24(x[1], 'AM');
+    return { sh, sm: smin, eh, em };
+  }
+  x = s.match(/(?:from\s*)?(\d{1,2})(?:[:.](\d{2}))?\s*(AM|PM)/i);
+  if (x) { const sh = to24(x[1], x[3]), sm = +(x[2] || 0); return { sh, sm, eh: Math.min(sh + 2, 23), em: sm }; }
+  return null;
+}
+function gcalUrl({ title, date, timing, details, location }) {
+  const d = gcParseDate(date);
+  if (!d) return '';
+  const multi = d.endD !== d.d || d.endM !== d.m;
+  const t = multi ? null : gcParseTime(timing);
+  const dates = t
+    ? gcYmd(d.y, d.m, d.d) + 'T' + gcPad(t.sh) + gcPad(t.sm) + '00/' + gcYmd(d.y, d.m, d.d) + 'T' + gcPad(t.eh) + gcPad(t.em) + '00'
+    : gcYmd(d.y, d.m, d.d) + '/' + gcNextDay(d.endY, d.endM, d.endD);
+  const p = new URLSearchParams({ action: 'TEMPLATE', text: title, dates, ctz: 'Asia/Singapore' });
+  if (details) p.set('details', details.slice(0, 1500));
+  if (location && location !== '-') p.set('location', location);
+  return 'https://calendar.google.com/calendar/render?' + p.toString();
+}
+
+
+var E = function (s) { return ECG.esc(s); }, I = function (n) { return ECG.icon(n); };
+var opps = [], groups = [], tab = 0, q = '', sort = 'reg', act = { type: [], level: [], subject: [] }, loaded = false;
+function when(str) { if (!str || /^[—-]$/.test(String(str).trim())) return null; var p = Date.parse(String(str).split(';').pop().trim()); return isNaN(p) ? null : new Date(p); }
+function val(o, keys) { for (var i = 0; i < keys.length; i++) { var k = keys[i]; if (o[k] && o[k].trim()) return o[k].trim(); } return ''; }
+/* Same columns as the previous version: Name, Level, Industry Interest, Type, Description, Duration, Timing, Link, Link Label, Date to Register, Date of Event, Location, Status, Attachments. */
+function load(d) {
+  var today = new Date(); today.setHours(0, 0, 0, 0);
+  opps = d.items.map(function (o, i) {
+    var st = (o['status'] || '').toLowerCase(), ev = when(o['date of event']);
+    var past = /past|completed/.test(st) ? true : (ev && ev < today) ? true : false;
+    return { id: i, name: o['name'] || '', level: o['level'] || 'JC1, JC2',
+      subjects: val(o, ['industry interest', 'industry interests', 'industry', 'subjects', 'subject']).split(/[;,]/).map(function (s) { return s.trim(); }).filter(function (s) { return s && s !== '-'; }),
+      type: o['type'] || 'General', desc: o['description'] || '', duration: o['duration'] || '', timing: o['timing'] || '', link: o['link'] || '',
+      linkLabel: o['link label'] || 'Learn more', reg: o['date to register'] || '', ev: o['date of event'] || '', location: o['location'] || '', past: past, attachments: o['attachments'] || '' };
+  }).filter(function (o) { return o.name; });
+  loaded = true; render();
+}
+function loadGroups(d) {
+  groups = d.items.map(function (o, i) {
+    var link = val(o, ['telegram link', 'link', 'telegram']); if (link && !/^https?:/i.test(link)) link = 'https://' + link.replace(/^@/, 't.me/');
+    return { org: val(o, ['name of group', 'organisation', 'organization', 'org']), platform: val(o, ['platform']) || 'Telegram', note: val(o, ['additional notes', 'notes', 'note']),
+      name: val(o, ['group name', 'name', 'group']), subjects: val(o, ['industry interest', 'industry interests', 'industry']).split(/[;,]/).map(function (s) { return s.trim(); }).filter(function (s) { return s && s !== '-'; }),
+      desc: val(o, ['description', 'desc']), link: link };
+  }).filter(function (g) { return (g.name || g.org) && g.link; });
+  render();
+}
+function uniq(fn) { var s = new Set(); opps.forEach(function (o) { [].concat(fn(o)).forEach(function (v) { v = (v || '').trim(); if (v) s.add(v); }); }); return Array.from(s).sort(); }
+function soon(o) { var r = when(o.reg); if (!r || o.past) return false; var days = (r - new Date()) / 864e5; return days >= -1 && days <= 14; }
+function filtered() {
+  var s = q.toLowerCase();
+  return opps.filter(function (o) {
+    if (tab === 0 && o.past) return false; if (tab === 1 && !o.past) return false;
+    if (s && ![o.name, o.desc, o.location].concat(o.subjects).some(function (x) { return x && x.toLowerCase().indexOf(s) > -1; })) return false;
+    if (act.type.length && act.type.indexOf(o.type) < 0) return false;
+    if (act.level.length && !o.level.split(',').some(function (l) { return act.level.indexOf(l.trim()) > -1; })) return false;
+    if (act.subject.length && !o.subjects.some(function (x) { return act.subject.indexOf(x) > -1; })) return false;
+    return true;
+  }).sort(function (a, b) {
+    if (sort === 'name') return a.name.localeCompare(b.name);
+    var A = when(sort === 'reg' ? a.reg : a.ev), B = when(sort === 'reg' ? b.reg : b.ev);
+    if (!A && !B) return 0; if (!A) return 1; if (!B) return -1; return tab === 1 ? B - A : A - B;
+  });
+}
+function tone(t) { t = (t || '').toLowerCase(); return /scholarship/.test(t) ? '' : /competition/.test(t) ? ' tag--maroon' : /workshop/.test(t) ? ' tag--ok' : ' tag--maroon'; }
+function chips(key, vals) { return vals.map(function (v) { var on = act[key].indexOf(v) > -1; return '<button type="button" class="chip' + (on ? ' is-active' : '') + '" aria-pressed="' + on + '" data-f="' + key + '" data-v="' + E(v) + '">' + E(v) + '</button>'; }).join(''); }
+function render() {
+  var up = opps.filter(function (o) { return !o.past; }).length;
+  var labels = ['Upcoming (' + up + ')', 'Past (' + (opps.length - up) + ')', 'All (' + opps.length + ')', 'Communities (' + groups.length + ')'];
+  document.querySelectorAll('[data-tabs] .t-tab').forEach(function (b, i) { b.textContent = labels[i]; });
+  document.querySelector('[data-f-type]').innerHTML = chips('type', uniq(function (o) { return o.type; }));
+  document.querySelector('[data-f-level]').innerHTML = chips('level', uniq(function (o) { return o.level.split(','); }));
+  document.querySelector('[data-f-subject]').innerHTML = chips('subject', uniq(function (o) { return o.subjects; }));
+  var nAct = act.type.length + act.level.length + act.subject.length;
+  document.querySelector('[data-nfilters]').textContent = nAct ? ' (' + nAct + ')' : '';
+  var out = document.querySelector('[data-list]'), count = document.querySelector('[data-count]');
+  if (!loaded) return;
+  if (tab === 3) {
+    var s = q.toLowerCase();
+    var gs = groups.filter(function (g) { return (!act.subject.length || g.subjects.some(function (x) { return act.subject.indexOf(x) > -1; })) && (!s || [g.org, g.name, g.desc].concat(g.subjects).some(function (x) { return x && x.toLowerCase().indexOf(s) > -1; })); });
+    count.textContent = gs.length + ' communities';
+    out.innerHTML = gs.length ? '<div class="opps">' + gs.map(function (g) {
+      return '<a class="opp" href="' + E(g.link) + '" target="_blank" rel="noopener"><div class="row"><span class="tag tag--ok">' + E(g.platform) + '</span></div><h3>' + E(g.name || g.org) + '</h3>' + (g.org && g.name ? '<div class="muted" style="font-size:var(--fs-sm)">' + E(g.org) + '</div>' : '') +
+        (g.desc ? '<p>' + E(g.desc) + '</p>' : '') + (g.subjects.length ? '<div class="mini">' + g.subjects.map(function (x) { return '<span>' + E(x) + '</span>'; }).join('') + '</div>' : '') +
+        (g.note ? '<div class="syncnote">' + E(g.note) + '</div>' : '') + '<span class="pcard__more">Join the group ' + I('arrow-up-right') + '</span></a>';
+    }).join('') + '</div>' : '<div class="empty">No community groups match yet.</div>';
+    return;
+  }
+  var list = filtered();
+  count.textContent = list.length + (list.length === 1 ? ' opportunity' : ' opportunities');
+  out.innerHTML = list.length ? '<div class="opps">' + list.map(function (o) {
+    var reg = o.reg && o.reg.trim() !== '-' ? o.reg : 'See details', ev = o.ev && o.ev.trim() !== '-' ? o.ev : 'Date TBC';
+    return '<button type="button" class="opp' + (o.past ? ' is-past' : '') + '" data-open="' + o.id + '"><div class="row"><span class="tag' + tone(o.type) + '">' + E(o.type) + '</span>' + (soon(o) ? '<span class="tag tag--soon">Closes soon</span>' : '') + (o.past ? '<span class="tag tag--maroon">Ended</span>' : '') + '</div>' +
+      '<h3>' + E(o.name) + '</h3>' + (o.desc ? '<p>' + E(o.desc) + '</p>' : '') +
+      '<div class="opp__dates"><div><span>Register by</span><b>' + E(reg) + '</b></div><div><span>Happens</span><b>' + E(ev) + '</b></div></div>' +
+      (o.subjects.length ? '<div class="mini">' + o.subjects.slice(0, 4).map(function (x) { return '<span>' + E(x) + '</span>'; }).join('') + (o.subjects.length > 4 ? '<span>+' + (o.subjects.length - 4) + '</span>' : '') + '</div>' : '') + '</button>';
+  }).join('') + '</div>' : '<div class="empty">Nothing matches yet. Try clearing filters, or check the Past tab.</div>';
+}
+var lastFocus;
+function openDialog(o) {
+  lastFocus = document.activeElement;
+  var cal = !o.past && typeof gcalUrl === 'function' ? gcalUrl({ title: o.name, date: o.ev, timing: o.timing, details: o.desc + (o.link ? '\n\n' + o.link : ''), location: o.location }) : '';
+  var kv = [['Register by', o.reg], ['Happens', o.ev], ['Timing', o.timing], ['Duration', o.duration], ['Where', o.location], ['For', o.level]].filter(function (x) { return x[1] && x[1].trim() !== '-'; });
+  var atts = (o.attachments || '').split(/\s*[\n;]\s*/).filter(function (u) { return /^https?:/.test(u); });
+  var back = document.createElement('div'); back.className = 'dialog-back';
+  var d = document.createElement('div'); d.className = 'dialog t-modal'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-labelledby', 'dlg-t');
+  d.innerHTML = '<button class="dialog__close" type="button" aria-label="Close">' + I('x') + '</button><div class="row"><span class="tag' + tone(o.type) + '">' + E(o.type) + '</span>' + (soon(o) ? '<span class="tag tag--soon">Closes soon</span>' : '') + '</div>' +
+    '<h2 id="dlg-t">' + E(o.name) + '</h2>' + (o.desc ? '<p class="desc">' + E(o.desc) + '</p>' : '') +
+    (kv.length ? '<div class="kv">' + kv.map(function (x) { return '<div><span>' + x[0] + '</span>' + E(x[1]) + '</div>'; }).join('') + '</div>' : '') +
+    (o.subjects.length ? '<div class="mini">' + o.subjects.map(function (x) { return '<span>' + E(x) + '</span>'; }).join('') + '</div>' : '') +
+    '<div class="row">' + (o.link ? '<a class="btn btn--gold" href="' + E(o.link) + '" target="_blank" rel="noopener">' + E(o.linkLabel) + I('arrow-up-right') + '</a>' : '') +
+    (cal ? '<a class="btn btn--ghost" href="' + E(cal) + '" target="_blank" rel="noopener">' + I('calendar-days') + 'Add to Google Calendar</a>' : '') +
+    atts.map(function (u, i) { return '<a class="btn btn--ghost" href="' + E(u) + '" target="_blank" rel="noopener">' + I('file-text') + 'Attachment' + (atts.length > 1 ? ' ' + (i + 1) : '') + '</a>'; }).join('') + '</div>';
+  document.body.appendChild(back); document.body.appendChild(d); void d.offsetWidth; d.classList.add('is-open');
+  var close = function () { d.classList.remove('is-open'); d.classList.add('is-closing'); back.remove(); setTimeout(function () { d.remove(); }, 150); document.removeEventListener('keydown', key); if (lastFocus) lastFocus.focus(); };
+  var key = function (e) { if (e.key === 'Escape') close(); if (e.key === 'Tab') { var f = d.querySelectorAll('a, button'); if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); } } };
+  back.addEventListener('click', close); d.querySelector('.dialog__close').addEventListener('click', close); document.addEventListener('keydown', key);
+  d.querySelector('.dialog__close').focus();
+}
+function start() {
+  render();
+  var a = ECG.sheet(SHEET); if (a.cached) load(a.cached);
+  a.fresh.then(load).catch(function () { if (!loaded) document.querySelector('[data-list]').innerHTML = '<div class="empty">The opportunities didn’t load just now. Refresh the page in a moment.</div>'; });
+  var b = ECG.sheet(GROUPS); if (b.cached) loadGroups(b.cached); b.fresh.then(loadGroups).catch(function () { });
+  document.querySelector('[data-tabs]').addEventListener('tabchange', function (e) { tab = e.detail.index; render(); });
+  document.querySelector('[data-q]').addEventListener('input', function (e) { q = e.target.value.trim(); render(); });
+  document.querySelector('[data-sort]').addEventListener('change', function (e) { sort = e.target.value; render(); });
+  document.querySelector('main').addEventListener('click', function (e) {
+    var c = e.target.closest('[data-f]'); if (c) { var k = c.getAttribute('data-f'), v = c.getAttribute('data-v'), i = act[k].indexOf(v); if (i > -1) act[k].splice(i, 1); else act[k].push(v); render(); }
+    if (e.target.closest('[data-clear]')) { act = { type: [], level: [], subject: [] }; q = ''; document.querySelector('[data-q]').value = ''; render(); }
+    var o = e.target.closest('[data-open]'); if (o) openDialog(opps[+o.getAttribute('data-open')]);
+  });
+  var tip = new URLSearchParams(location.search).get('q'); if (tip) { q = tip; document.querySelector('[data-q]').value = tip; render(); }
+}
+if (window.ECG) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ECG Calendar · ECG @ VJC</title>
+<meta name="description" content="What ECG runs each term across JC1 and JC2, and the checkpoints to aim for.">
+<meta name="theme-color" content="#8C151B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,600..800,0..100,0..1;1,9..144,600..800,0..100,0..1&display=swap">
+<link rel="stylesheet" href="assets/ecg.css">
+<script src="assets/ecg.js" defer></script>
+</head>
+<body data-page="ecg-calendar">
+<main id="main">
+  <header class="phero">
+    <div class="wrap phero__in t-stagger">
+      <div data-crumbs class="t-stagger-line" style="display:grid;gap:14px"></div>
+      <h1 class="t-stagger-line t-stagger-line--2">The ECG calendar</h1>
+      <p class="lead t-stagger-line t-stagger-line--3">What ECG runs each term across JC1 and JC2, and the checkpoints to aim for. This term is highlighted.</p>
+      
+    </div>
+  </header>
+  <div class="page">
+    <div class="wrap stack">
+      <section class="block"><div class="tabs-scroll" data-tabs></div><div class="uni-panel" data-year aria-live="polite"><div class="term__skel" style="background:var(--sand);height:160px"></div></div></section>
+      <div class="callout"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-sparkles"/></svg><div><b>Stay curious. Take action.</b> Opportunities only count if you use them. Explore widely, ask questions and sign up early.<div class="row" style="margin-top:10px"><a class="btn" href="opportunity-search-portal.html"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-search"/></svg>Find opportunities</a></div></div></div>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+var URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTO6Eh2zNscSrJUK4R1zWw6Dqh3x5azuka9-ek_DId0qB_fZEK6d9idYDZXfB9LIZq_wo46M5RJGFc6/pub?gid=0&single=true&output=csv';
+var MONTHS = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+var E = function (s) { return ECG.esc(s); };
+/* Same sheet layout as before: one block of rows per year; Stage, Focus, Checkpoint and "Term N (Mon-Mon)" columns. */
+var fix = function (s) { return String(s || '').replace(/Shcolarships/g, 'Scholarships').replace(/\s+/g, ' ').trim(); };
+var items = function (s) { return String(s || '').split(/\n+/).map(function (x) { return fix(x.replace(/^\s*[-•·–]\s*/, '')); }).filter(Boolean); };
+function termLabel(h) { var m = String(h || '').match(/^(.*?)\s*\(([^)]+)\)\s*$/); return m ? { name: m[1].trim(), months: m[2].replace(/-/g, '–').trim() } : { name: fix(h), months: '' }; }
+function isNow(months) { var p = months.toLowerCase().split(/[–-]/).map(function (x) { return MONTHS.indexOf(x.trim().slice(0, 3)); }); if (p.length < 2 || p.some(function (x) { return x < 0; })) return false; var m = new Date().getMonth(); return m >= p[0] && m <= p[1]; }
+function parse(rows) {
+  var hi = rows.findIndex(function (r) { return r.some(function (x) { return /term\s*\d/i.test(x); }); }); if (hi < 0) hi = 0;
+  var h = rows[hi].map(function (x) { return x.trim(); }), lh = h.map(function (x) { return x.toLowerCase(); });
+  var f = function (re) { return lh.findIndex(function (x) { return re.test(x); }); };
+  var iS = f(/stage/), iF = f(/focus/), iC = f(/checkpoint/), tc = lh.map(function (x, i) { return /term/.test(x) ? i : -1; }).filter(function (i) { return i >= 0; });
+  var cell = function (r, i) { return i >= 0 && r[i] ? r[i] : ''; }, out = [];
+  rows.slice(hi + 1).forEach(function (r) {
+    var name = fix(r[0]), y;
+    if (name) { out.push({ name: name, stages: [], checks: [], terms: tc.map(function (i) { var t = termLabel(h[i]); t.items = []; return t; }) }); }
+    y = out[out.length - 1]; if (!y) return;
+    var sn = fix(cell(r, iS)), fo = fix(cell(r, iF)); if (sn || fo) y.stages.push({ name: sn, focus: fo });
+    y.checks = y.checks.concat(items(cell(r, iC)));
+    tc.forEach(function (i, k) { y.terms[k].items = y.terms[k].items.concat(items(r[i])); });
+  });
+  return out;
+}
+var years = [], active = 0;
+function render() {
+  var y = years[active]; if (!y) return;
+  var p = document.querySelector('[data-year]'); p.classList.remove('panel-in'); void p.offsetWidth; p.classList.add('panel-in');
+  p.innerHTML =
+    (y.stages.length ? '<div class="stages">' + y.stages.map(function (s) { return '<div class="stage"><b>' + E(s.name) + '</b><span>' + E(s.focus) + '</span></div>'; }).join('') + '</div>' : '') +
+    '<div class="terms" style="margin-top:14px">' + y.terms.map(function (t) {
+      var now = isNow(t.months);
+      return '<div class="termcard' + (now ? ' is-now' : '') + '"><h3>' + E(t.name) + (now ? ' <span class="tag">Now</span>' : '') + '</h3><small>' + E(t.months) + '</small><ul>' +
+        (t.items.length ? t.items.map(function (x) { return '<li>' + E(x) + '</li>'; }).join('') : '<li>Nothing scheduled yet</li>') + '</ul></div>';
+    }).join('') + '</div>' +
+    (y.checks.length ? '<h3 style="margin-top:22px">Checkpoints to aim for</h3><ul class="checks" style="margin-top:10px">' + y.checks.map(function (c) { return '<li>' + E(c) + '</li>'; }).join('') + '</ul>' : '');
+}
+function apply(d) {
+  years = parse([d.head].concat(d.rows)); if (!years.length) return fail();
+  var w = document.querySelector('[data-tabs]');
+  var nowYear = 0;
+  w.innerHTML = '<div class="t-tabs t-tabs--lg" role="tablist" aria-label="Year"><span class="t-tabs-pill"></span>' + years.map(function (y, i) { return '<button class="t-tab" role="tab" aria-selected="' + (i === active) + '">' + E(y.name) + '</button>'; }).join('') + '</div>';
+  ECG.initTabs(w); w.querySelector('.t-tabs').addEventListener('tabchange', function (e) { active = e.detail.index; render(); });
+  render();
+}
+function fail() { document.querySelector('[data-year]').innerHTML = '<div class="empty">The calendar didn’t load just now. Refresh the page in a moment.</div>'; }
+function start() { var s = ECG.sheet(URL); if (s.cached) apply(s.cached); s.fresh.then(apply).catch(function () { if (!years.length) fail(); }); }
+if (window.ECG) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body>
+</html>
