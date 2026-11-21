@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meet the Team · ECG @ VJC</title>
+<meta name="description" content="The ECG Counsellor, the ECG and Talent Development teams, and who to email about what.">
+<meta name="theme-color" content="#8C151B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,600..800,0..100,0..1;1,9..144,600..800,0..100,0..1&display=swap">
+<link rel="stylesheet" href="assets/ecg.css">
+<script src="assets/ecg.js" defer></script>
+</head>
+<body data-page="meet-the-team" data-no-help>
+<main id="main">
+  <header class="phero">
+    <div class="wrap phero__in t-stagger">
+      <div data-crumbs class="t-stagger-line" style="display:grid;gap:14px"></div>
+      <h1 class="t-stagger-line t-stagger-line--2">Meet the team</h1>
+      <p class="lead t-stagger-line t-stagger-line--3">The people behind ECG at VJC. Not sure who to ask? Start with Ms Rachel Gong, our ECG Counsellor.</p>
+      
+    </div>
+  </header>
+  <div class="page">
+    <div class="wrap stack">
+      <section class="block"><div class="feature">
+          <figure class="feature__pic"><img src="https://i.postimg.cc/DwdvwH63/Rachel.png" alt="Ms Rachel Gong, ECG Counsellor" loading="lazy" onerror="this.parentNode.innerHTML='&lt;div class=initials&gt;RG&lt;/div&gt;'"></figure>
+          <div class="stack" style="gap:14px">
+            <span class="eyebrow">Your ECG Counsellor</span>
+            <h2>Ms Rachel Gong</h2>
+            <p>Talk to her one-on-one about where you're heading. She's worked in both the public sector (EDB) and the private sector (Uniqlo), so she knows what different organisations look for when they hire.</p>
+            <ul class="checks"><li>CV and résumé reviews</li><li>Career and course planning</li><li>Scholarship applications and interview prep</li></ul>
+            <div class="row"><a class="btn btn--gold" href="https://for.edu.sg/vjcecgcappointment"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-calendar-check"/></svg>Book a session</a><a class="btn btn--ghost" href="mailto:rachel.gong@vjc.edu.sg"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-mail"/></svg>Email Ms Gong</a></div>
+          </div>
+        </div></section>
+      <section id="leads" class="block " data-short="Leads">
+        <div class="block__head"><span class="ico ico--gold"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-star"/></svg></span><div><h2>Who runs ECG and TD</h2></div></div>
+        <div class="leads" data-leads></div>
+      </section>
+      <section id="teams" class="block " data-short="Teams">
+        <div class="block__head"><span class="ico"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-users"/></svg></span><div><h2>The teams</h2><p>Teachers who help with applications, references and scholarships.</p></div></div>
+        <div class="split" style="align-items:center">
+          <div class="t-tabs t-tabs--lg" role="tablist" aria-label="Team" data-team-tabs><span class="t-tabs-pill"></span><button class="t-tab" role="tab" aria-selected="true">ECG team</button><button class="t-tab" role="tab" aria-selected="false">Talent Development</button></div>
+          <div class="searchfield"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-search"/></svg><input class="input" type="search" placeholder="Search by name or department" aria-label="Search teachers" data-q></div>
+        </div>
+        <div class="people" data-people aria-live="polite" style="margin-top:18px"></div>
+      </section>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+var SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRyHkj-TnCE5-JU2atFHRlE94LHUP2z30nWw2Cy0ZAUTQOZVN_5uAZSvjh_u3FCSrpzD9wBElwmstRM/pub?gid=0&single=true&output=csv';
+/* ---- Saved team list carried over from the previous version of this page ---- */
+const PEOPLE_ECG = [
+  { name: 'Ms. Cindy Chan', email: 'chan.siew.fun@vjc.edu.sg', role: 'English Department', img: 'https://i.postimg.cc/WbzgrmKf/Cindy.png' },
+  { name: 'Ms. Charlene Teh', email: 'teh.kai.ling.charlene@vjc.edu.sg', role: 'English Department', img: 'https://i.postimg.cc/L5CPwhYM/Charlene.png' },
+  { name: 'Ms. Cui Ying Chong', email: 'chong.cuiying@vjc.edu.sg', role: 'Head of Department, Economics Department', img: 'https://i.postimg.cc/JzBXYrRx/Cui-Ying.png' },
+  { name: 'Ms. Geraldine Tay', email: 'geraldine.tay.rou.jun@vjc.edu.sg', role: 'Economics Department', img: '' /* the old page reused Ms Chong\'s photo here; add Ms Tay\'s own */ },
+  { name: 'Mr. Hazrin Bin Zainal', email: 'hazrin.zainal@vjc.edu.sg', role: 'English Department', img: 'https://i.postimg.cc/yxdgmBfj/Hazrin.png' },
+  { name: 'Mr. Keng Hua Lee', email: 'lee.kenghua@vjc.edu.sg', role: 'Level Head (Physics), Science Department', img: 'https://i.postimg.cc/g2RwqgDG/Keng-Hua.png' },
+  { name: 'Mrs. Mei Ling Chua', email: 'chue.meiling@vjc.edu.sg', role: 'Economics Department', img: 'https://i.postimg.cc/j5qLTtrr/Mei-Ling.png' },
+  { name: 'Ms. Yueh Fong Chang', email: 'chang.yueh.fong@vjc.edu.sg', role: 'Mathematics Department', img: 'https://i.postimg.cc/7hfhC9h4/Yueh-Fong.png' },
+  { name: 'Ms. Rachel Gong', email: 'rachel.gong@vjc.edu.sg', role: 'ECG Counsellor', img: 'https://i.postimg.cc/DwdvwH63/Rachel.png', helps: ['CV and résumé reviews', 'Career and course planning', 'Scholarship and interview prep'], bookHref: 'https://for.edu.sg/vjcecgcappointment' },
+];
+const PEOPLE_TD = [
+  { name: 'Ms. Audrey Ngerng', email: 'ngerng.xiuru.audrey@vjc.edu.sg', role: 'Subject Head (Geography), Arts Department', img: 'https://i.postimg.cc/RF1QsML3/Audrey-Ngerng.png' },
+  { name: 'Ms. Audrey Tay', email: 'tay.weili.audrey@vjc.edu.sg', role: 'Subject Head (Student Leadership), English Department', img: 'https://i.postimg.cc/x1kGrG3P/Audrey-Tay.png' },
+  { name: 'Mr. Caleb Ho', email: 'ho.tianyu.basil.caleb@vjc.edu.sg', role: 'Senior Teacher (Physics), Science Department', img: 'https://i.postimg.cc/pTBzQsPR/Caleb-Ho.png' },
+  { name: 'Ms. Cui Ying Chong', email: 'chong.cuiying@vjc.edu.sg', role: 'Head of Department, Economics Department', img: 'https://i.postimg.cc/JzBXYrRx/Cui-Ying.png' },
+  { name: 'Mrs. Jean Chong', email: 'tan.yenjun@vjc.edu.sg', role: 'Level Head, Mathematics Department', img: 'https://i.postimg.cc/T27WRLws/Jean.png' },
+  { name: 'Ms. Jocelyn Teo', email: 'teo.wan.lin@vjc.edu.sg', role: 'Mathematics Department', img: 'https://i.postimg.cc/X7tGCR9k/Jocelyn.png' },
+  { name: 'Ms. Sandhya', email: 'sandhya@vjc.edu.sg', role: 'English Department', img: 'https://i.postimg.cc/jdnCtMBP/Sandhya.png' },
+  { name: 'Ms. Sharon Lim', email: 'sharon.lim.jia.yin@vjc.edu.sg', role: 'Assistant Year Head, English Department', img: 'https://i.postimg.cc/t40JThjy/Sharon-Lim.png' },
+  { name: 'Ms. Sharon Tey', email: 'tey.li.wei.sharon@vjc.edu.sg', role: 'Head of Department, Science Department', img: 'https://i.postimg.cc/Bv4v54bN/Sharon-Tey.png' },
+  { name: 'Mr. Wei Liang Tan', email: 'tan.wei.liang@vjc.edu.sg', role: 'Head of Department, Mathematics Department', img: 'https://i.postimg.cc/4d3NMPzN/Wei-Liang.png' },
+];
+const LEADS = [
+  { name: 'Ms. Valerie Tan', email: 'tan.jiahui.valerie@vjc.edu.sg', role: 'Head of Department, ECG & TD · Mathematics Department', img: 'https://i.postimg.cc/4ysCqxCc/Val.png' },
+  { name: 'Mr. Lionel Loh', email: 'loh.han.loong@vjc.edu.sg', role: 'Coordinator for TD · English Department', img: 'https://i.postimg.cc/N0k5ZLSR/Lionel.png' },
+];
+
+
+var E = function (s) { return ECG.esc(s); }, I = function (n) { return ECG.icon(n); };
+var teams = { leads: LEADS, ecg: PEOPLE_ECG, td: PEOPLE_TD }, tab = 0, q = '';
+function initials(n) { return n.replace(/^(ms|mr|mrs|dr|mdm)\.?\s+/i, '').split(/\s+/).map(function (w) { return w[0]; }).slice(0, 2).join('').toUpperCase(); }
+function pic(p) {
+  return '<figure class="person__pic">' + (p.img ? '<img src="' + E(p.img) + '" alt="' + E(p.name) + '" loading="lazy" decoding="async" onerror="this.outerHTML=\'<div class=initials>' + initials(p.name) + '</div>\'">' : '<div class="initials">' + initials(p.name) + '</div>') + '</figure>';
+}
+function card(p) {
+  return '<article class="person">' + pic(p) + '<div><div class="person__name">' + E(p.name) + '</div><div class="person__role">' + E(p.role) + '</div></div>' +
+    (p.email ? '<a class="person__mail" href="mailto:' + E(p.email) + '">' + I('mail') + E(p.email) + '</a>' : '') + '</article>';
+}
+function render() {
+  document.querySelector('[data-leads]').innerHTML = teams.leads.map(function (p) {
+    return '<div class="lead">' + pic(p) + '<div><div class="person__name">' + E(p.name) + '</div><div class="person__role">' + E(p.role) + '</div>' + (p.email ? '<a class="person__mail" href="mailto:' + E(p.email) + '">' + I('mail') + 'Email</a>' : '') + '</div></div>';
+  }).join('');
+  var list = (tab === 0 ? teams.ecg : teams.td).filter(function (p) { return !/rachel gong/i.test(p.name); });
+  var s = q.trim().toLowerCase();
+  if (s) list = teams.ecg.concat(teams.td).filter(function (p, i, a) { return a.findIndex(function (x) { return x.email === p.email; }) === i && (p.name + ' ' + p.role).toLowerCase().indexOf(s) > -1; });
+  document.querySelector('[data-people]').innerHTML = list.length ? list.map(card).join('') : '<div class="empty" style="grid-column:1/-1">No one matches \u201c' + E(q) + '\u201d. Try a department, like Economics.</div>';
+}
+function start() {
+  render();
+  document.querySelector('[data-team-tabs]').addEventListener('tabchange', function (e) { tab = e.detail.index; render(); });
+  document.querySelector('[data-q]').addEventListener('input', function (e) { q = e.target.value; render(); });
+  var s = ECG.sheet(SHEET_CSV_URL);
+  var apply = function (d) {
+    var objs = d.items; if (!objs.length) return;
+    var ALL = LEADS.concat(PEOPLE_ECG, PEOPLE_TD), by = {}, norm = function (n) { return n.toLowerCase().replace(/^(ms|mr|mrs|dr|mdm)\.?\s+/, '').trim(); };
+    ALL.forEach(function (p) { by[p.name.toLowerCase()] = p; by[norm(p.name)] = p; });
+    var pick = function (o, ks) { for (var i = 0; i < ks.length; i++) if (o[ks[i]] && o[ks[i]].trim()) return o[ks[i]].trim(); return ''; };
+    var g = { leads: [], ecg: [], td: [] }, LN = LEADS.map(function (l) { return l.name.toLowerCase(); }), TN = PEOPLE_TD.map(function (l) { return l.name.toLowerCase(); });
+    objs.forEach(function (o) {
+      var name = pick(o, ['name', 'full name', 'staff name']); if (!name) return;
+      var k = by[name.toLowerCase()] || by[norm(name)];
+      var p = { name: name, email: pick(o, ['email', 'email address', 'e-mail']) || (k ? k.email : ''), role: pick(o, ['role', 'title', 'designation', 'position']) || (k ? k.role : ''), img: pick(o, ['image', 'img', 'photo', 'image url', 'photo url']) || (k ? k.img : '') };
+      var team = pick(o, ['team', 'section', 'group']).toLowerCase();
+      if (team.indexOf('lead') > -1 || LN.indexOf(name.toLowerCase()) > -1) g.leads.push(p);
+      else if (team.indexOf('td') > -1 || (!team && TN.indexOf(name.toLowerCase()) > -1)) g.td.push(p);
+      else g.ecg.push(p);
+    });
+    if (g.leads.length || g.ecg.length || g.td.length) { teams = { leads: g.leads.length ? g.leads : LEADS, ecg: g.ecg.length ? g.ecg : PEOPLE_ECG, td: g.td.length ? g.td : PEOPLE_TD }; render(); }
+  };
+  if (s.cached) apply(s.cached);
+  s.fresh.then(apply).catch(function () {});
+}
+if (window.ECG) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body>
+</html>

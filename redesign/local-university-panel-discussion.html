@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>University Panel Discussion · ECG @ VJC</title>
+<meta name="description" content="Hear from all six local universities on admissions and pathways, with booths and a Q&amp;A. For JC1 students and parents.">
+<meta name="theme-color" content="#8C151B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,600..800,0..100,0..1;1,9..144,600..800,0..100,0..1&display=swap">
+<link rel="stylesheet" href="assets/ecg.css">
+<script src="assets/ecg.js" defer></script>
+</head>
+<body data-page="local-university-panel-discussion">
+<main id="main">
+  <header class="phero phero--photo">
+    <div class="wrap phero__in t-stagger">
+      <div data-crumbs class="t-stagger-line" style="display:grid;gap:14px"></div>
+      <h1 class="t-stagger-line t-stagger-line--2">Local University Panel Discussion</h1>
+      <p class="lead t-stagger-line t-stagger-line--3">Hear from all six local universities on admissions, pathways and opportunities, then ask your own questions. For JC1 students and their parents.</p>
+      <figure class="phero__pic"><img src="assets/img/uni-panel.webp" alt="Representatives from NUS, NTU, SMU, SUTD, SIT and SUSS on stage at VJC" width="1000" height="688" decoding="async" fetchpriority="high"></figure><div class="facts t-stagger-line t-stagger-line--4"><div class="fact"><b>16 October 2026</b><span>Friday, at VJC</span></div><div class="fact"><b>6 universities</b><span>NUS, NTU, SMU, SUTD, SIT and SUSS</span></div><div class="fact"><b>Parents welcome</b><span>invited through Parents Gateway</span></div></div>
+    </div>
+  </header>
+  <nav data-jump></nav>
+  <div class="page">
+    <div class="wrap stack">
+      <div class="callout" data-banner><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-info"/></svg><div></div></div>
+      <section id="programme" class="block " data-short="Programme">
+        <div class="block__head"><span class="ico ico--gold"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-clock"/></svg></span><div><h2>The programme</h2></div></div>
+        <div class="dates" data-schedule></div>
+      </section>
+      <section id="about" class="block " data-short="About">
+        <div class="block__head"><span class="ico"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-messages-square"/></svg></span><div><h2>What happens on the day</h2></div></div>
+        <p>Every October, VJC welcomes JC1 students and their parents to hear how university admissions work and how higher education is changing.</p><p>Representatives from all six local autonomous universities share what they look for, the pathways they offer and the opportunities on campus. Before the panel, visit the university booths in the concourse for one-to-one conversations.</p><p>The Q&amp;A is your chance to ask what you really want to know, so come with questions.</p>
+      </section>
+      <section id="prepare" class="block " data-short="Read first">
+        <div class="block__head"><span class="ico"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-book-open"/></svg></span><div><h2>Before you attend</h2></div></div>
+        <p data-note style="color:var(--ink-2)"></p><div class="tabs-scroll" data-uni-tabs></div><div class="uni-panel" data-uni aria-live="polite"></div>
+      </section>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+var SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTGFLCh35smqhtLsTYWvFSrGYTXC8VVyNXDxAbpkl0zOzm2OsfWX88INA_lRx4O926RjhMvrle0-Zok/pub?gid=0&single=true&output=csv';
+/* ---- Saved data and sheet parser carried over unchanged from the previous version of this page ---- */
+const FALLBACK = {
+  banner: 'Do note that parents have been invited to this event via an announcement on Parents Gateway',
+  persons: '',
+  date: 'Friday, 16 October 2026',
+  schedule: [
+    { name: 'University Booths', time: '4:00 to 5.30PM', persons: 'Parents and JC1 Students', venue: 'Concourse' },
+    { name: 'University Panel Q&A', time: '5.30 to 7.00PM', persons: 'Parents and JC1 Students', venue: 'Hall' }
+  ],
+  note: 'Please read up on these materials with your parents before attending the University Panel Discussion.',
+  unis: [
+    { name: 'National University of Singapore (NUS)', description: "NUS is Singapore's flagship comprehensive university, offering a broad range of programmes across disciplines including business, computing, engineering, medicine, law, science and the humanities and social sciences. It combines rigorous academic education with opportunities for research, innovation, entrepreneurship and global exposure.", link: 'https://nus.edu.sg/', topics: [{"title":"Undergraduate Admissions","link":"https://nus.edu.sg/oam"},{"title":"Admissions, Scholarships and Financial Aid","link":"https://nus.edu.sg/oam#undergrad-admission-publication"},{"title":"(Video) NUS and admissions","link":"https://www.youtube.com/@NUSAdmissions/videos"}] },
+    { name: 'Nanyang Technological University (NTU)', description: 'NTU is a research-intensive university known for its strengths in engineering, technology, business, science and the humanities and social sciences. With a strong focus on innovation and interdisciplinary learning, NTU provides students with opportunities to engage in research, industry projects and global experiences.', link: 'https://www.ntu.edu.sg/', topics: [{"title":"eBrochures across all Degrees","link":"https://drive.google.com/drive/folders/1OWGSYnyTuF51KEsp-uSyA-pXqSn968EX?usp=sharing"}] },
+    { name: 'Singapore Management University (SMU)', description: 'SMU is a city-based university with a distinctive focus on business, management, social sciences, computing and law. Its interactive seminar-style teaching, interdisciplinary curriculum and strong industry connections prepare students to think critically, communicate effectively and apply their knowledge to real-world challenges.', link: 'https://www.smu.edu.sg/', topics: [{"title":"E-Resource Sheet","link":"https://drive.google.com/drive/folders/1fmdGg9HH38rX4IlRwKQlTrQPb1ENdenS?usp=sharing"}] },
+    { name: 'Singapore Institute of Technology (SIT)', description: "SIT is Singapore's university of applied learning, offering industry-focused programmes designed to connect academic knowledge with professional practice. Students gain hands-on experience through applied learning, work placements and industry projects, preparing them for careers in areas such as engineering, health sciences, computing, business and design.", link: 'https://www.singaporetech.edu.sg/', topics: [{"title":"SIT Scholarship and Financial Aid","link":"https://www.youtube.com/watch?v=ZfkqLfb0AV4"}] },
+    { name: 'Singapore University of Technology and Design (SUTD)', description: 'SUTD focuses on technology, design and innovation, integrating engineering, computing, architecture and design with a strong emphasis on interdisciplinary problem-solving. Its hands-on curriculum encourages students to develop creative solutions to complex technological and societal challenges.', link: 'https://www.sutd.edu.sg/', topics: [{"title":"(Video) The World's First Design AI University","link":"https://www.youtubeeducation.com/watch?v=NQvj2Fh1oM8"},{"title":"(Video) What makes SUTD Unique?","link":"https://www.youtubeeducation.com/watch?v=MO2vyHoE9fM"},{"title":"(Video) SUTD 101: Our 5 Majors in a Nutshell","link":"https://www.youtubeeducation.com/watch?v=uJAwjF5lKMc"},{"title":"(Video) SUTD-Nuke NUS Medical School's MD Programme","link":"https://www.youtubeeducation.com/watch?v=fp5TBwnq9Zo"},{"title":"Scholarships","link":"https://www.sutd.edu.sg/admissions/undergraduate/scholarship/sutd-administered/"},{"title":"Financial Options & Aid","link":"https://www.sutd.edu.sg/admissions/undergraduate/financing-options-and-aid/#tabs"},{"title":"eBrochures across all Degrees","link":"https://drive.google.com/drive/folders/1FrMCZULLv4iz2jslMlCBic_RqLCCbSBI?usp=sharing"}] },
+    { name: 'Singapore University of Social Sciences (SUSS)', description: 'SUSS specialises in applied and lifelong learning, with programmes spanning business, social sciences, human development, law, communication and related fields. Its flexible, practice-oriented approach connects academic learning with real-world applications and prepares students for evolving careers and continued learning.', link: 'https://www.suss.edu.sg/', topics: [{"title":"Introduction to SUSS","link":"https://drive.google.com/file/d/19-wPTfQsnwlCtOGWDAMuhOZSYxvOsgum/view?usp=sharing"},{"title":"Parents' Flyer","link":"https://drive.google.com/file/d/1h7WnjFKJ2_fNIguiSxLsMXUhpl-k_ijA/view?usp=sharing"},{"title":"eBrochure for all Degrees","link":"https://drive.google.com/file/d/1PANPy2gzOZvZ_CzMHN1KpUwTnPREK9Rl/view?usp=sharing"}] }
+  ]
+};
+
+function parseCSV(text) {
+  const rows = []; let row = []; let cur = ''; let q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"' && text[i + 1] === '"') { cur += '"'; i++; }
+      else if (c === '"') q = false;
+      else cur += c;
+    } else if (c === '"') q = true;
+    else if (c === ',') { row.push(cur); cur = ''; }
+    else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+    else if (c !== '\r') cur += c;
+  }
+  if (cur || row.length) { row.push(cur); rows.push(row); }
+  return rows.map(r => r.map(x => x.trim()));
+}
+
+function fromSheet(rows) {
+  const out = { banner: '', date: '', persons: '', schedule: [], note: '', unis: [] };
+  let inUnis = false;
+  for (const r of rows) {
+    const [a = '', b = '', c = '', d = '', e = ''] = r;
+    if (!a && !b && !c && !d && !e) continue;
+    const key = a.toLowerCase();
+    if (key === 'university' && b.toLowerCase() === 'description') { inUnis = true; continue; }
+    if (inUnis) {
+      if (a) out.unis.push({ name: a, description: b, link: c, topics: [] });
+      const cur = out.unis[out.unis.length - 1];
+      if (cur && d) cur.topics.push({ title: d.replace(/\s+/g, ' ').trim(), link: e });
+      continue;
+    }
+    if (key === 'sticky banner') { out.banner = b; continue; }
+    if (key === 'date') { out.date = b; continue; }
+    if (key === 'persons involved') { out.persons = b; continue; }
+    if (!b && !c) { out.note = a; continue; }
+    out.schedule.push(d ? { name: a, time: b, persons: c, venue: d } : { name: a, time: b, persons: '', venue: c });
+  }
+  return out;
+}
+
+
+var E = function (s) { return ECG.esc(s); }, I = function (n) { return ECG.icon(n); };
+var data = FALLBACK, active = 0;
+function short(n) { var m = n.match(/\(([^)]+)\)/); return m ? m[1] : n; }
+function render() {
+  var fb = document.querySelector('.facts .fact'); if (fb && data.date) { var m = data.date.match(/^(\w+day),\s*(.*)$/); fb.querySelector('b').textContent = m ? m[2] : data.date; fb.querySelector('span').textContent = (m ? m[1] + ', ' : '') + 'at VJC'; }
+  var b = document.querySelector('[data-banner]'); b.hidden = !data.banner; b.querySelector('div').textContent = data.banner;
+  document.querySelector('[data-schedule]').innerHTML = data.schedule.map(function (s, i) {
+    return '<div class="date' + (i === data.schedule.length - 1 ? ' is-hot' : '') + '"><span class="date__who">' + E(s.time) + '</span><span class="date__when">' + E(s.name) + '</span>' +
+      '<p>' + (s.venue ? E(s.venue) : '') + (s.persons ? ' \u00b7 ' + E(s.persons) : '') + '</p></div>';
+  }).join('');
+  document.querySelector('[data-note]').textContent = data.note || '';
+  var wrap = document.querySelector('[data-uni-tabs]');
+  wrap.innerHTML = '<div class="t-tabs t-tabs--lg" role="tablist" aria-label="University"><span class="t-tabs-pill"></span>' + data.unis.map(function (u, i) {
+    return '<button class="t-tab" role="tab" aria-selected="' + (i === active) + '">' + E(short(u.name)) + '</button>'; }).join('') + '</div>';
+  ECG.initTabs(wrap);
+  wrap.querySelector('.t-tabs').addEventListener('tabchange', function (e) { active = e.detail.index; uni(); });
+  uni();
+}
+function uni() {
+  var u = data.unis[active], p = document.querySelector('[data-uni]'); if (!u) return;
+  p.classList.remove('panel-in'); void p.offsetWidth; p.classList.add('panel-in');
+  p.innerHTML = '<div class="split"><div><h3>' + E(u.name) + '</h3><p style="margin-top:8px;color:var(--ink-2)">' + E(u.description) + '</p>' +
+    (u.link ? '<div class="row" style="margin-top:14px"><a class="btn btn--ghost" href="' + E(u.link) + '" target="_blank" rel="noopener">' + I('external-link') + 'Visit the website</a></div>' : '') + '</div>' +
+    '<div><div class="group-title">Read before you go</div><div class="tiles" style="grid-template-columns:1fr">' + u.topics.map(function (t) {
+      var vid = /^\(video\)/i.test(t.title);
+      return '<a class="tile" href="' + E(t.link) + '" target="_blank" rel="noopener"><span class="tile__top">' + (vid ? '<span class="tag">Video</span>' : '<span class="tag tag--maroon">Read</span>') + '<span class="tile__go">' + I('arrow-up-right') + '</span></span><span class="tile__title">' + E(t.title.replace(/^\(video\)\s*/i, '')) + '</span></a>';
+    }).join('') + '</div></div></div>';
+}
+function start() {
+  render();
+  fetch(SHEET_URL + '&_ts=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : Promise.reject(); }).then(function (t) {
+    var d = fromSheet(parseCSV(t));
+    if (d.unis.length || d.schedule.length) { var m = Object.assign({}, FALLBACK); Object.keys(d).forEach(function (k) { var v = d[k]; if (Array.isArray(v) ? v.length : v) m[k] = v; }); data = m; render(); }
+  }).catch(function () {});
+}
+if (window.ECG) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body>
+</html>

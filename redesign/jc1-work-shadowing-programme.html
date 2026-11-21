@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JC1 Work Shadowing · ECG @ VJC</title>
+<meta name="description" content="Browse this year&#x27;s JC1 work shadowing placements by sector and interest, and sign up.">
+<meta name="theme-color" content="#8C151B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,600..800,0..100,0..1;1,9..144,600..800,0..100,0..1&display=swap">
+<link rel="stylesheet" href="assets/ecg.css">
+<script src="assets/ecg.js" defer></script>
+</head>
+<body data-page="jc1-work-shadowing-programme">
+<main id="main">
+  <header class="phero phero--photo">
+    <div class="wrap phero__in t-stagger">
+      <div data-crumbs class="t-stagger-line" style="display:grid;gap:14px"></div>
+      <h1 class="t-stagger-line t-stagger-line--2">JC1 Work Shadowing</h1>
+      <p class="lead t-stagger-line t-stagger-line--3">Spend a few days inside a workplace you're curious about. Browse this year's placements by sector or interest, then sign up.</p>
+      <div class="phero__actions t-stagger-line t-stagger-line--4"><a class="btn btn--gold" href="https://forms.gle/eThut4zhnovkbDto7"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-calendar-check"/></svg>Sign up for work shadowing</a></div><figure class="phero__pic"><img src="assets/img/work-shadowing-radio.webp" alt="Victorians in a radio studio during work shadowing" width="1000" height="688" decoding="async" fetchpriority="high"></figure>
+    </div>
+  </header>
+  <div class="page">
+    <div class="wrap stack">
+      <section class="block" aria-label="Find a placement">
+        <div class="filterbar">
+          <div class="searchfield"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-search"/></svg><input class="input" type="search" placeholder="Search by company, sector or interest" aria-label="Search placements" data-q></div>
+          <div class="filterbar__row"><span class="filterbar__label">Year</span><div class="filters" data-f-year role="group" aria-label="Year"></div></div>
+          <div class="filterbar__row"><span class="filterbar__label">Sector</span><div class="filters" data-f-sector role="group" aria-label="Sector"></div></div>
+          <div class="filterbar__row"><span class="filterbar__label">Interest</span><div class="filters" data-f-interest role="group" aria-label="Interest area"></div></div>
+          <div class="row" style="justify-content:space-between"><span class="syncnote" data-count aria-live="polite">Loading placements…</span><button class="linkbtn" type="button" data-clear>Clear filters</button></div>
+        </div>
+      </section>
+      <div class="journey-list" data-list aria-live="polite"><div class="empty">Loading placements…</div></div>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+var CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6ZKeijurVkibwp9aPozvTKhtYX9LHCF95iuGjxecijBpuyDD47bzqrZVabLgvcjqZPiRl6x1Tbyvk/pub?gid=0&single=true&output=csv';
+var E = function (s) { return ECG.esc(s); }, I = function (n) { return ECG.icon(n); };
+var entries = [], q = '', pick = { year: [], sector: [], interest: [] };
+/* Column order matches the Work Shadowing sheet (same as the previous version of this page). */
+function build(rows) {
+  var out = [], cur = null;
+  rows.forEach(function (r) {
+    if (!r || r.every(function (c) { return !c || !c.trim(); })) return;
+    var g = function (i) { return (r[i] || '').trim(); };
+    var company = g(1).replace(/\s+/g, ' ');
+    if (company) {
+      cur = { year: g(0), company: company, about: g(2), req: g(3), sector: g(4) || 'Other',
+        interests: g(5) ? g(5).split(';').map(function (s) { return s.trim(); }).filter(Boolean) : [],
+        duration: g(6), spots: g(7), allowance: g(8), attachment: g(16), photos: [], quotes: [], days: [] };
+      out.push(cur);
+    }
+    if (!cur) return;
+    var day = { label: g(11), venue: g(9), period: g(10), timing: g(12), scope: g(13), instr: g(14), notes: g(15) };
+    if (day.venue || day.period || day.label || day.timing || day.scope || day.instr || day.notes) { day.label = day.label || 'Day ' + (cur.days.length + 1); cur.days.push(day); }
+    if (!company && g(16) && !cur.attachment) cur.attachment = g(16);
+    if (g(17)) g(17).split('\n').map(function (s) { return s.trim(); }).filter(function (s) { return /^http/.test(s); }).forEach(function (u) { cur.photos.push(u); });
+    if (g(18) && g(18) !== '-') g(18).replace(/^"|"$/g, '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean).forEach(function (t) { cur.quotes.push(t); });
+  });
+  return out.filter(function (e) { return e.days.length; });
+}
+function lines(t) {
+  return String(t || '').replace(/ /g, ' ').split('\n').map(function (l) { return l.trim(); }).filter(Boolean).map(function (l) {
+    var h = E(l).replace(/(https?:\/\/[^\s<>"]+|www\.[^\s<>"]+|forms\.gle\/[^\s<>"]+)/gi, function (u) { var c = u.replace(/[.,;:)\]]+$/, ''); return '<a href="' + (/^http/i.test(c) ? c : 'https://' + c) + '" target="_blank" rel="noopener">' + c + '</a>' + u.slice(c.length); })
+      .replace(/([\w.+-]+@[\w-]+\.[\w.-]+)/g, '<a href="mailto:$1">$1</a>')
+      .replace(/^([A-Za-z][A-Za-z \-\/.]{2,30}):/, '<b>$1:</b>');
+    return '<p>' + h + '</p>';
+  }).join('');
+}
+function facets(key, fn) { var s = new Set(); entries.forEach(function (e) { [].concat(fn(e)).forEach(function (v) { if (v) s.add(v); }); }); return Array.from(s).sort(); }
+function matches(e) {
+  var hay = [e.company, e.sector, e.about, e.interests.join(' ')].join(' ').toLowerCase();
+  return (!q || hay.indexOf(q) > -1) && (!pick.year.length || pick.year.indexOf(e.year) > -1) &&
+    (!pick.sector.length || pick.sector.indexOf(e.sector) > -1) && (!pick.interest.length || e.interests.some(function (i) { return pick.interest.indexOf(i) > -1; }));
+}
+function chips(key, vals) {
+  return vals.map(function (v) { var on = pick[key].indexOf(v) > -1; return '<button type="button" class="chip' + (on ? ' is-active' : '') + '" aria-pressed="' + on + '" data-f="' + key + '" data-v="' + E(v) + '">' + E(v) + '</button>'; }).join('');
+}
+function render() {
+  document.querySelector('[data-f-year]').innerHTML = chips('year', facets('year', function (e) { return e.year; }));
+  document.querySelector('[data-f-sector]').innerHTML = chips('sector', facets('sector', function (e) { return e.sector; }));
+  document.querySelector('[data-f-interest]').innerHTML = chips('interest', facets('interest', function (e) { return e.interests; }));
+  var shown = entries.filter(matches);
+  document.querySelector('[data-count]').textContent = shown.length + ' of ' + entries.length + ' placements';
+  document.querySelector('[data-list]').innerHTML = shown.length ? shown.map(function (e) {
+    var facts = [['clock', e.duration], ['users', e.spots && e.spots + ' places'], ['award', e.allowance && 'Allowance: ' + e.allowance]].filter(function (f) { return f[1]; });
+    return '<article class="jcard" style="grid-template-columns:1fr"><div class="jcard__main">' +
+      '<div class="row"><span class="tag tag--ok">' + E(e.sector) + '</span>' + (e.year ? '<span class="tag tag--maroon">' + E(e.year) + '</span>' : '') + '</div>' +
+      '<h3>' + E(e.company) + '</h3>' +
+      (facts.length ? '<div class="meta">' + facts.map(function (f) { return '<span>' + I(f[0]) + E(f[1]) + '</span>'; }).join('') + '</div>' : '') +
+      (e.about ? '<div style="color:var(--ink-2);font-size:var(--fs-sm)">' + lines(e.about) + '</div>' : '') +
+      (e.interests.length ? '<div class="row">' + e.interests.map(function (i) { return '<span class="chip" style="cursor:default">' + E(i) + '</span>'; }).join('') + '</div>' : '') +
+      (e.req ? '<div class="callout" style="font-size:var(--fs-sm)">' + I('list-checks') + '<div><b>Requirements</b>' + lines(e.req) + '</div></div>' : '') +
+      (e.photos.length ? '<div class="strip">' + e.photos.map(function (u, i) { return '<button type="button" data-photo="' + E(u) + '" aria-label="View photo ' + (i + 1) + '"><img src="' + E(u) + '" alt="' + E(e.company) + ' work shadowing photo ' + (i + 1) + '" loading="lazy"></button>'; }).join('') + '</div>' : '') +
+      (e.quotes.length ? '<div class="quote" style="grid-template-columns:1fr"><blockquote>“' + E(e.quotes[0].replace(/^"|"$/g, '')) + '”</blockquote></div>' : '') +
+      '<div class="qa t-acc" data-open="false"><button class="qa__q" type="button"><span>Schedule and instructions (' + e.days.length + ' day' + (e.days.length > 1 ? 's' : '') + ')</span></button><div class="t-acc-panel"><div class="t-acc-panel-inner"><div class="qa__a">' +
+        '<ol class="steps">' + e.days.map(function (d) {
+          return '<li class="step"><div class="step__when">' + E(d.label) + (d.period ? ' · ' + E(d.period) : '') + '</div><div class="step__what">' +
+            '<div class="meta" style="margin-bottom:8px">' + (d.timing ? '<span>' + I('clock') + E(d.timing) + '</span>' : '') + (d.venue ? '<span>' + I('map-pin') + E(d.venue) + '</span>' : '') + '</div>' +
+            (d.scope ? '<b>What you’ll do</b>' + lines(d.scope) : '') + (d.instr ? '<b>Instructions</b>' + lines(d.instr) : '') + (d.notes ? '<b>Notes</b>' + lines(d.notes) : '') + '</div></li>';
+        }).join('') + '</ol>' + (e.attachment && /^http/.test(e.attachment) ? '<a class="btn btn--ghost" href="' + E(e.attachment) + '" target="_blank" rel="noopener">' + I('file-text') + 'Attachment</a>' : '') +
+      '</div></div></div></div></div></article>';
+  }).join('') : '<div class="empty">No placements match. Try clearing a filter.</div>';
+  ECG.initAccordions(document.querySelector('[data-list]'));
+}
+function start() {
+  var s = ECG.sheet(CSV_URL);
+  var apply = function (d) { entries = build(d.rows); render(); };
+  if (s.cached) apply(s.cached);
+  s.fresh.then(apply).catch(function () { if (!entries.length) document.querySelector('[data-list]').innerHTML = '<div class="empty">The placements didn’t load just now. Refresh the page in a moment.</div>'; });
+  document.querySelector('[data-q]').addEventListener('input', function (e) { q = e.target.value.trim().toLowerCase(); render(); });
+  document.querySelector('main').addEventListener('click', function (e) {
+    var c = e.target.closest('[data-f]'); if (c) { var k = c.getAttribute('data-f'), v = c.getAttribute('data-v'), i = pick[k].indexOf(v); if (i > -1) pick[k].splice(i, 1); else pick[k].push(v); render(); }
+    if (e.target.closest('[data-clear]')) { pick = { year: [], sector: [], interest: [] }; q = ''; document.querySelector('[data-q]').value = ''; render(); }
+    var p = e.target.closest('[data-photo]'); if (p) window.open(p.getAttribute('data-photo'), '_blank', 'noopener');
+  });
+}
+if (window.ECG) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body>
+</html>

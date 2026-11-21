@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rank Points Calculator · ECG @ VJC</title>
+<meta name="description" content="Work out your University Admission Score out of 70 from your A-Level grades.">
+<meta name="theme-color" content="#8C151B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,600..800,0..100,0..1;1,9..144,600..800,0..100,0..1&display=swap">
+<link rel="stylesheet" href="assets/ecg.css">
+<script src="assets/ecg.js" defer></script>
+</head>
+<body data-page="rank-points-calculator">
+<main id="main">
+  <header class="phero">
+    <div class="wrap phero__in t-stagger">
+      <div data-crumbs class="t-stagger-line" style="display:grid;gap:14px"></div>
+      <h1 class="t-stagger-line t-stagger-line--2">Work out your rank points</h1>
+      <p class="lead t-stagger-line t-stagger-line--3">Tap a grade for each subject. Your University Admission Score out of 70 updates as you go, using whichever combination counts best for you.</p>
+    </div>
+  </header>
+
+  <div class="page">
+    <div class="wrap tool" style="margin-top:18px">
+      <div class="stack">
+        <section class="block" aria-labelledby="core-title">
+          <div class="block__head">
+            <span class="ico"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-list-checks"/></svg></span>
+            <div><h2 id="core-title">Your core subjects</h2><p>Everyone's score counts these four.</p></div>
+          </div>
+          <div data-rows="core"></div>
+        </section>
+
+        <section class="block" aria-labelledby="extra-title">
+          <div class="block__head">
+            <span class="ico ico--gold"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-sparkles"/></svg></span>
+            <div><h2 id="extra-title">Extras that can raise it</h2><p>A 4th H2, an H1 content subject or Mother Tongue only count if they lift your score.</p></div>
+          </div>
+          <div data-rows="extra"></div>
+        </section>
+
+        <section class="block block--tint" aria-labelledby="scheme-title">
+          <div class="block__head">
+            <span class="ico"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-calculator"/></svg></span>
+            <div><h2 id="scheme-title">How the score works</h2></div>
+          </div>
+          <div class="faq">
+            <details class="qa"><summary>Points for each grade</summary>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Grade</th><th>H2 subject</th><th>H1 subject</th></tr></thead>
+                  <tbody>
+                    <tr><td><b>A</b></td><td>20</td><td>10</td></tr>
+                    <tr><td><b>B</b></td><td>17.5</td><td>8.75</td></tr>
+                    <tr><td><b>C</b></td><td>15</td><td>7.5</td></tr>
+                    <tr><td><b>D</b></td><td>12.5</td><td>6.25</td></tr>
+                    <tr><td><b>E</b></td><td>10</td><td>5</td></tr>
+                    <tr><td><b>S</b></td><td>5</td><td>2.5</td></tr>
+                    <tr><td><b>U</b></td><td>0</td><td>0</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </details>
+            <details class="qa"><summary>Which combinations are counted?</summary>
+              <p>Your best 3 H2 subjects and H1 General Paper always count, out of 70. The calculator also tries adding your 4th content subject (a 4th H2 at half its points, or an H1), your Mother Tongue, or both, then scales each total back to 70.</p>
+              <p>You get whichever is highest, so an extra subject can only help.</p>
+            </details>
+            <details class="qa"><summary>Is this my official score?</summary>
+              <p>No. It's an estimate to help you plan. Universities work out the official score from your results. Check each course's own requirements too.</p>
+            </details>
+          </div>
+        </section>
+      </div>
+
+      <aside class="tool__side" aria-label="Your score">
+        <div class="score">
+          <div class="score__label">Estimated score</div>
+          <div class="score__num"><span class="t-subtle-number" data-score aria-live="polite">0.00</span><small>/ 70</small></div>
+          <div class="meter" aria-hidden="true"><i data-meter></i></div>
+          <p class="score__method" data-method>Pick your grades to see your score.</p>
+          <ul class="score__rows" data-rows-out></ul>
+        </div>
+        <div class="boost" data-boost hidden>
+          <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-lightbulb"/></svg>
+          <span data-boost-text></span>
+        </div>
+        <div class="row">
+          <button class="btn btn--ghost" type="button" data-reset><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-rotate-ccw"/></svg>Start again</button>
+          <a class="btn" href="book-an-ecg-session.html">Talk it through</a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
+<div class="scorebar" data-scorebar aria-hidden="true"><span style="font-size:var(--fs-sm)">Score</span><b data-score-mini>0.00</b><span style="opacity:.7">/ 70</span><div class="meter"><i data-meter-mini></i></div></div>
+
+<script>
+(function () {
+  var GRADES = ['A', 'B', 'C', 'D', 'E', 'S', 'U'];
+  var PTS = { A: 20, B: 17.5, C: 15, D: 12.5, E: 10, S: 5, U: 0 };
+  var SUBJECTS = [
+    { id: 'gp', group: 'core', label: 'H1 General Paper' },
+    { id: 'h2a', group: 'core', label: 'H2 subject 1', name: true, ph: 'e.g. Mathematics' },
+    { id: 'h2b', group: 'core', label: 'H2 subject 2', name: true, ph: 'e.g. Chemistry' },
+    { id: 'h2c', group: 'core', label: 'H2 subject 3', name: true, ph: 'e.g. Economics' },
+    { id: 'h2d', group: 'extra', label: '4th H2 subject', name: true, ph: 'e.g. Further Mathematics', note: 'Optional' },
+    { id: 'h1', group: 'extra', label: 'H1 content subject', name: true, ph: 'e.g. Economics', note: 'Optional' },
+    { id: 'mtl', group: 'extra', label: 'H1 Mother Tongue', note: 'Optional' }
+  ];
+  var KEY = 'ecg:rp';
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { }
+
+  function build() {
+    SUBJECTS.forEach(function (s) {
+      var host = document.querySelector('[data-rows="' + s.group + '"]');
+      var nm = (state[s.id + ':name'] || '').replace(/"/g, '&quot;');
+      host.insertAdjacentHTML('beforeend',
+        '<div class="subj"><div class="subj__label"><b id="l-' + s.id + '">' + s.label + '</b>' +
+        (s.note ? '<small>' + s.note + '</small>' : '') +
+        '<button class="linkbtn" type="button" data-clear="' + s.id + '" hidden>Clear ' + (s.id === 'gp' || s.id === 'mtl' ? 'grade' : 'grade') + '<span class="sr-only"> for ' + s.label + '</span></button>' +
+        (s.name ? '<input class="input" data-name="' + s.id + '" value="' + nm + '" placeholder="' + s.ph + '" aria-label="' + s.label + ' name">' : '') +
+        '</div><fieldset class="grades" aria-labelledby="l-' + s.id + '"><legend>' + s.label + ' grade</legend>' +
+        GRADES.map(function (g) {
+          return '<label><input type="radio" name="' + s.id + '" value="' + g + '"' + (state[s.id] === g ? ' checked' : '') + '><span>' + g + '</span></label>';
+        }).join('') +
+        '</fieldset></div>');
+    });
+  }
+
+  function calc(st) {
+    var g = function (id) { return st[id] ? PTS[st[id]] : null; };
+    var any = SUBJECTS.some(function (s) { return st[s.id]; });
+    if (!any) return null;
+    var gp = (g('gp') || 0) / 2;
+    var h2 = ['h2a', 'h2b', 'h2c', 'h2d'].map(function (id) { return { id: id, p: g(id) || 0 }; }).sort(function (a, b) { return b.p - a.p; });
+    var best3 = h2[0].p + h2[1].p + h2[2].p;
+    var fourthH2 = st.h2d ? h2[3].p / 2 : 0;
+    var h1 = (g('h1') || 0) / 2;
+    var fourth = Math.max(fourthH2, h1);
+    var mtl = (g('mtl') || 0) / 2;
+    var core = best3 + gp;
+    var opts = [
+      { name: 'your 3 H2s and GP', s: core, d: 70 },
+      { name: 'your 3 H2s, GP and 4th subject', s: core + fourth, d: 80, need: fourth > 0 },
+      { name: 'your 3 H2s, GP and Mother Tongue', s: core + mtl, d: 80, need: mtl > 0 },
+      { name: 'your 3 H2s, GP, 4th subject and Mother Tongue', s: core + fourth + mtl, d: 90, need: fourth > 0 && mtl > 0 }
+    ].filter(function (o) { return o.need !== false; });
+    var best = null;
+    opts.forEach(function (o) { o.v = o.s / o.d * 70; if (!best || o.v >= best.v) best = o; });
+    return { score: best.v, method: best.name, gp: gp, best3: best3, fourth: fourth, mtl: mtl };
+  }
+
+  /* transitions.dev number subtle change */
+  var numEl = document.querySelector('[data-score]'); var shown = '0.00', shownVal = 0;
+  function setNumber(next) {
+    var str = next.toFixed(2), prev = shown, same = prev.length === str.length;
+    numEl.style.setProperty('--subtle-dir', next >= shownVal ? '1' : '-1');
+    numEl.setAttribute('aria-label', str + ' out of 70');
+    numEl.classList.remove('is-animating'); numEl.replaceChildren();
+    [].slice.call(str).forEach(function (ch, i) {
+      if (same && prev[i] === ch) { numEl.append(ch); return; }
+      var slot = document.createElement('span'); slot.className = 't-subtle-slot';
+      if (same) { var old = document.createElement('span'); old.className = 't-subtle-old'; old.setAttribute('aria-hidden', 'true'); old.textContent = prev[i]; slot.appendChild(old); }
+      var fresh = document.createElement('span'); fresh.className = 't-subtle-new'; fresh.textContent = ch; slot.appendChild(fresh);
+      numEl.appendChild(slot);
+    });
+    shown = str; shownVal = next; void numEl.offsetHeight; numEl.classList.add('is-animating');
+  }
+
+  function labelOf(id) { var s = SUBJECTS.filter(function (x) { return x.id === id; })[0]; return (state[id + ':name'] || '').trim() || s.label; }
+
+  function update() {
+    var r = calc(state);
+    var score = r ? r.score : 0;
+    if (score.toFixed(2) !== shown) setNumber(score);
+    document.querySelector('[data-meter]').style.width = (score / 70 * 100) + '%';
+    document.querySelector('[data-meter-mini]').style.width = (score / 70 * 100) + '%';
+    document.querySelector('[data-score-mini]').textContent = score.toFixed(2);
+    document.querySelector('[data-method]').innerHTML = r ? 'Counting <b>' + r.method + '</b>, scaled to 70.' : 'Pick your grades to see your score.';
+    document.querySelector('[data-rows-out]').innerHTML = r ?
+      '<li><span>Best 3 H2s</span><b>' + r.best3.toFixed(2) + '</b></li><li><span>General Paper</span><b>' + r.gp.toFixed(2) + '</b></li>' +
+      (r.fourth ? '<li><span>4th subject</span><b>' + r.fourth.toFixed(2) + '</b></li>' : '') +
+      (r.mtl ? '<li><span>Mother Tongue</span><b>' + r.mtl.toFixed(2) + '</b></li>' : '') : '';
+    // Biggest boost: which single grade up helps most?
+    var best = null;
+    if (r) SUBJECTS.forEach(function (s) {
+      var gi = GRADES.indexOf(state[s.id]); if (gi <= 0) return;
+      var t = Object.assign({}, state); t[s.id] = GRADES[gi - 1];
+      var d = calc(t).score - score; if (d > 0.005 && (!best || d > best.d)) best = { id: s.id, d: d, to: GRADES[gi - 1] };
+    });
+    var box = document.querySelector('[data-boost]');
+    box.hidden = !best;
+    if (best) document.querySelector('[data-boost-text]').innerHTML = 'Biggest boost: ' + (/[AES]/.test(best.to) ? 'an' : 'a') + ' <b>' + best.to + '</b> in <b>' + ECG.esc(labelOf(best.id)) + '</b> would add <b>' + best.d.toFixed(2) + '</b> points.';
+    document.querySelectorAll('[data-clear]').forEach(function (b) { b.hidden = !state[b.getAttribute('data-clear')]; });
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { }
+  }
+
+  function start() {
+    build();
+    document.querySelector('main').addEventListener('change', function (e) { if (e.target.type === 'radio') { state[e.target.name] = e.target.value; update(); } });
+    document.querySelector('main').addEventListener('input', function (e) { var id = e.target.getAttribute('data-name'); if (id) { state[id + ':name'] = e.target.value; update(); } });
+    document.querySelector('main').addEventListener('click', function (e) {
+      var c = e.target.closest('[data-clear]'); if (c) { var id = c.getAttribute('data-clear'); delete state[id]; document.querySelectorAll('input[name="' + id + '"]').forEach(function (i) { i.checked = false; }); update(); }
+      if (e.target.closest('[data-reset]')) { state = {}; document.querySelectorAll('.grades input').forEach(function (i) { i.checked = false; }); document.querySelectorAll('[data-name]').forEach(function (i) { i.value = ''; }); update(); }
+    });
+    update();
+    // Phone: keep the score in sight once the main card scrolls away (only after a grade is picked).
+    var bar = document.querySelector('[data-scorebar]');
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (es) {
+      bar.classList.toggle('is-shown', !es[0].isIntersecting && !!calc(state));
+    }).observe(document.querySelector('.score'));
+  }
+  if (window.ECG) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body>
+</html>
