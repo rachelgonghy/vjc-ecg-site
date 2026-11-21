@@ -965,8 +965,8 @@ a:hover > .pic img, .pic:hover img { transform: scale(1.03); }
 .person__mail { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; font-size: var(--fs-sm); font-weight: 650; text-decoration: none; word-break: break-all; }
 .person__mail .icon { width: 16px; height: 16px; flex: none; }
 .leads { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 14px; }
-.lead { display: grid; grid-template-columns: 96px 1fr; gap: 16px; align-items: center; padding: 16px; border-radius: var(--r-md); background: var(--cream); border: 1px solid var(--line); }
-.lead .person__pic { aspect-ratio: 1; border-radius: 50%; }
+.leadcard { display: grid; grid-template-columns: 96px 1fr; gap: 16px; align-items: center; padding: 16px; border-radius: var(--r-md); background: var(--cream); border: 1px solid var(--line); }
+.leadcard .person__pic { aspect-ratio: 1; border-radius: 50%; }
 
 /* =========================================================
    Chatbot
@@ -1095,3 +1095,14 @@ body[data-page="ecg-chatbot"] .chat { min-height: calc(100vh - var(--topbar-h) -
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 14px; }
 .notes { display: grid; gap: 6px; font-size: var(--fs-sm); color: var(--ink-2); }
 .notes b { color: var(--ink); }
+
+/* Scholarship cards */
+.sch { display: grid; gap: 12px; align-content: start; padding: 18px; border-radius: var(--r-md); background: var(--paper); border: 1px solid var(--line); }
+.sch.is-closed { opacity: .55; filter: grayscale(1); }
+.sch__head { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 12px; align-items: center; }
+.logo { width: 52px; height: 52px; border-radius: 14px; background: #fff; border: 1px solid var(--line); display: grid; place-items: center; overflow: hidden; font: 800 .9rem/1 var(--font-display); color: var(--maroon); }
+.logo img { width: 100%; height: 100%; object-fit: contain; padding: 6px; }
+.sch h3 { font-size: 1.1rem; }
+.field-block { font-size: var(--fs-sm); color: var(--ink-2); }
+.field-block b { display: block; color: var(--ink); font-size: var(--fs-xs); letter-spacing: .05em; text-transform: uppercase; margin-bottom: 4px; }
+.field-block ul { padding-left: 1.1em; }

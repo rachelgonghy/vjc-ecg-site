@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>External Links · ECG @ VJC</title>
+<meta name="description" content="Trusted sites outside VJC for exploring careers, courses, skills and scholarships.">
+<meta name="theme-color" content="#8C151B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,600..800,0..100,0..1;1,9..144,600..800,0..100,0..1&display=swap">
+<link rel="stylesheet" href="assets/ecg.css">
+<script src="assets/ecg.js" defer></script>
+</head>
+<body data-page="external-links">
+<main id="main">
+  <header class="phero">
+    <div class="wrap phero__in t-stagger">
+      <div data-crumbs class="t-stagger-line" style="display:grid;gap:14px"></div>
+      <h1 class="t-stagger-line t-stagger-line--2">External links</h1>
+      <p class="lead t-stagger-line t-stagger-line--3">Trusted sites outside VJC for exploring careers, courses, skills and scholarships. Filter by what you're trying to do.</p>
+      
+    </div>
+  </header>
+  <div class="page">
+    <div class="wrap stack">
+      <section class="block" aria-label="Search and filter">
+        <div class="filterbar">
+          <div class="searchfield"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-search"/></svg><input class="input" type="search" placeholder="Search, e.g. careers, skills, PSC" aria-label="Search links" data-q></div>
+          <div class="filterbar__row"><span class="filterbar__label">Goal</span><div class="filters" data-goals role="group" aria-label="Goal"></div></div>
+          <span class="syncnote" data-count aria-live="polite"></span>
+        </div>
+      </section>
+      <div data-list aria-live="polite"></div>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+/* ---- Sheet link and parser carried over from the previous version ---- */
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTrftelILtBELwfQ1r9S_QGetGyc9srzO--zUKYmBo2bB_HRA35J2MH6UU4HY6MOIq2yyLlY9MLraWE/pub?output=csv';
+const CACHE_KEY = 'vjc-ecg-external-links-csv';
+const ORG_BY_HOST = [
+  [/psc\.gov\.sg/, 'Public Service Commission'],
+  [/mycareersfuture/, 'Workforce Singapore'],
+  [/myskillsfuture|skillsfuture/, 'SkillsFuture'],
+  [/nyc\.gov\.sg/, 'National Youth Council'],
+];
+
+function parseCSV(text) {
+  const rows = []; let row = []; let cur = ''; let q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) {
+      if (ch === '"' && text[i + 1] === '"') { cur += '"'; i++; }
+      else if (ch === '"') q = false;
+      else cur += ch;
+    } else if (ch === '"') q = true;
+    else if (ch === ',') { row.push(cur); cur = ''; }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && text[i + 1] === '\n') i++;
+      row.push(cur); rows.push(row); row = []; cur = '';
+    } else cur += ch;
+  }
+  if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+  return rows.filter(r => r.some(c => c.trim() !== ''));
+}
+const clean = s => String(s || '').replace(/\s*\n\s*/g, ' ').replace(/\s+/g, ' ').trim();
+
+function toRecords(text) {
+  const rows = parseCSV(text);
+  if (rows.length < 2) return [];
+  const h = rows[0].map(x => x.trim().toLowerCase());
+  const col = (...names) => { for (const n of names) { const i = h.findIndex(x => x.startsWith(n)); if (i >= 0) return i; } return -1; };
+  const iP = col('portal'), iN = col('name'), iG = col('ecg goal', 'goal'), iA = col('accessible'), iD = col('description'), iW = col('website', 'link', 'url');
+  let lastPortal = '';
+  return rows.slice(1).map(r => {
+    const get = i => (i >= 0 ? clean(r[i]) : '');
+    let href = get(iW);
+    if (href && !/^https?:\/\//i.test(href)) href = 'https://' + href;
+    let host = '';
+    try { host = new URL(href).hostname.replace(/^www\./, ''); } catch (e) {}
+    let portal = get(iP);
+    if (!portal) portal = lastPortal;
+    else if (portal === '-') { const m = ORG_BY_HOST.find(([re]) => re.test(host)); portal = m ? m[1] : ''; }
+    else lastPortal = portal;
+    return {
+      name: get(iN), href, host, portal,
+      desc: get(iD),
+      goals: get(iG).split(';').map(s => s.trim()).filter(Boolean),
+      teachers: /teacher/i.test(get(iA)) && !/all|student/i.test(get(iA)),
+      logo: host ? 'https://www.google.com/s2/favicons?domain=' + host + '&sz=128' : ''
+    };
+  }).filter(r => r.name && r.href);
+}
+
+
+var E = function (s) { return ECG.esc(s); }, I = function (n) { return ECG.icon(n); };
+var records = [], q = '', goal = 'All';
+function render() {
+  var goals = []; records.forEach(function (r) { r.goals.forEach(function (g) { if (goals.indexOf(g) < 0) goals.push(g); }); });
+  document.querySelector('[data-goals]').innerHTML = ['All'].concat(goals).map(function (g) { return '<button type="button" class="chip' + (g === goal ? ' is-active' : '') + '" aria-pressed="' + (g === goal) + '" data-goal="' + E(g) + '">' + E(g) + '</button>'; }).join('');
+  var s = q.toLowerCase();
+  var list = records.filter(function (r) { return (goal === 'All' || r.goals.indexOf(goal) > -1) && (!s || [r.name, r.portal, r.desc, r.host, r.goals.join(' ')].join(' ').toLowerCase().indexOf(s) > -1); });
+  document.querySelector('[data-count]').textContent = list.length + (list.length === 1 ? ' link' : ' links');
+  document.querySelector('[data-list]').innerHTML = list.length ? '<div class="tiles tiles--2">' + list.map(function (r) {
+    return '<a class="tile" href="' + E(r.href) + '" target="_blank" rel="noopener"><span class="tile__top"><span class="logo" style="width:40px;height:40px;border-radius:12px">' + (r.logo ? '<img src="' + E(r.logo) + '" alt="" loading="lazy" onerror="this.remove()">' : '') + '</span>' +
+      '<span class="tile__kind">' + E(r.portal && r.portal.toLowerCase() !== r.name.toLowerCase() ? r.portal : r.host) + '</span><span class="tile__go">' + I('arrow-up-right') + '</span></span>' +
+      '<span class="tile__title">' + E(r.name) + '</span>' + (r.desc ? '<span class="tile__note">' + E(r.desc) + '</span>' : '') +
+      '<span class="mini" style="margin-top:4px">' + r.goals.map(function (g) { return '<span>' + E(g) + '</span>'; }).join('') + (r.teachers ? '<span>Teacher access</span>' : '') + '</span></a>';
+  }).join('') + '</div>' : '<div class="empty">' + (records.length ? 'No links match. Try another goal.' : 'Loading links…') + '</div>';
+}
+function start() {
+  render();
+  var s = ECG.sheet(SHEET_URL);
+  var toText = function (d) { return [d.head].concat(d.rows).map(function (r) { return r.map(function (c) { return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(','); }).join('\n'); };
+  var apply = function (d) { var r = toRecords(toText(d)); if (r.length) { records = r; render(); } };
+  if (s.cached) apply(s.cached); s.fresh.then(apply).catch(function () { if (!records.length) document.querySelector('[data-list]').innerHTML = '<div class="empty">The links didn’t load just now. Refresh the page in a moment.</div>'; });
+  document.querySelector('[data-q]').addEventListener('input', function (e) { q = e.target.value.trim(); render(); });
+  document.querySelector('main').addEventListener('click', function (e) { var g = e.target.closest('[data-goal]'); if (g) { goal = g.getAttribute('data-goal'); render(); } });
+}
+if (window.ECG) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interview Processes · ECG @ VJC</title>
+<meta name="description" content="What scholarship interviews are like, from seniors who went through them: formats, rounds, common questions and tips.">
+<meta name="theme-color" content="#8C151B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,600..800,0..100,0..1;1,9..144,600..800,0..100,0..1&display=swap">
+<link rel="stylesheet" href="assets/ecg.css">
+<script src="assets/ecg.js" defer></script>
+</head>
+<body data-page="interview-processes" data-no-help>
+<main id="main">
+  <header class="phero">
+    <div class="wrap phero__in t-stagger">
+      <div data-crumbs class="t-stagger-line" style="display:grid;gap:14px"></div>
+      <h1 class="t-stagger-line t-stagger-line--2">Scholarship interviews, from seniors</h1>
+      <p class="lead t-stagger-line t-stagger-line--3">What each interview is really like: the format, the rounds, the questions seniors were asked, and their tips. Then practise with a mock interview.</p>
+      <div class="phero__actions t-stagger-line t-stagger-line--4"><a class="btn btn--gold" href="https://for.edu.sg/vjcecgcappointment"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-mic"/></svg>Book a mock interview</a><a class="btn btn--ghost" href="undergraduate-scholarships.html">Undergraduate scholarships</a></div>
+    </div>
+  </header>
+  <div class="page">
+    <div class="wrap stack">
+      <section class="block" aria-label="Search">
+        <div class="filterbar">
+          <div class="searchfield"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-search"/></svg><input class="input" type="search" placeholder="Search, e.g. PSC, A*STAR, psychometric" aria-label="Search interview guides" data-q></div>
+          <div class="filters" data-types role="group" aria-label="Type"></div>
+          <span class="syncnote" data-count aria-live="polite"></span>
+        </div>
+      </section>
+      <div data-list aria-live="polite"></div>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+/* ---- Sheet links, seniors' summaries and helpers carried over from the previous version (logos now in assets/img/logos) ---- */
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvM9UIrgFW0lx-8UDifJDtw-nSRAOQi4ahGDLZzpepuekoP_Izy-10Ffw1fhqpIYwb6HcZx7YjPPI7/pub?gid=1910348844&single=true&output=csv';
+const CACHE_KEY = 'vjc-ecg-interview-summaries-csv-v2';
+const THREAD_BASE = 'https://groups.google.com/a/vjc.edu.sg/g/vjc-scholarships-and-applications-sharing-forum-VJC/c/';
+const THREAD_LINKS = {"Engineering and Tech Programme Scholarship (ETPS)":"povRZHcJYQA","Humanities Scholarship Programme":"Wis_kZ5s6dc","Language Elective":"QgY8Ex6wvvc","Prime Minister's Book Prize":"nCDrmW1M_Ag","MOE Pre-U":"CK6ly0b6a6M","Regional Studies Programme (RSP)":"CjRmGcjkKaA","SAF Young Leader Award (SYLA)":"GJ1BRfStOzw","PSC (Public Administration)":"Hf9ChxDAj0w","PSC (Psychometric Assessment Exercise)":"Aqaumos7WUE","PSC (MSF)":"pkVpy5aE2lU","A*STAR":"8rNjRk0rYuM","DSTA":"tykXKFjNQgg","EDB":"j5uLwaB4ILQ","MOE Teaching (Local)":"v0f6PA3ZfgA","MOHH / Allied Health Related":"V8nYvW7vG6A","MFA":"XilJ9JXIB9U","MHA":"ERGisFdgVGE","MINDEF":"GJ1BRfStOzw","SAF":"GJ1BRfStOzw","NUS":"nlIOHun-pl8","Jardine":"7OsTjMKkJ1Q"};
+const PREU_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSBQQL2c24GCn-ETEW8ZwBxdhv8Ln5VvEE8k0AlzSCrNK4t_9Zy5RDul6vEEwfe78-deNbjyP6Xvujj/pub?gid=0&single=true&output=csv';
+const PREU_CACHE = 'vjc-ecg-preu-about-csv';
+
+function acronym(s) { const m = s.match(/\(([A-Z][A-Za-z*]{1,8})\)/); return m ? m[1].toLowerCase() : ''; }
+function shortAbout(text) {
+  const t = text.replace(/\s+/g, ' ').trim();
+  const parts = t.match(/[^.!?]+[.!?]+(\s|$)/g) || [t];
+  let out = '';
+  for (const p of parts) { if ((out + p).length > 260 && out) break; out += p; }
+  return out.trim();
+}
+
+function parseCSV(text) {
+  const rows = []; let row = []; let cur = ''; let q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) {
+      if (ch === '"' && text[i + 1] === '"') { cur += '"'; i++; }
+      else if (ch === '"') q = false;
+      else cur += ch;
+    } else if (ch === '"') q = true;
+    else if (ch === ',') { row.push(cur); cur = ''; }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && text[i + 1] === '\n') i++;
+      row.push(cur); rows.push(row); row = []; cur = '';
+    } else cur += ch;
+  }
+  if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+  return rows.filter(r => r.some(x => x.trim() !== ''));
+}
+
+function col(headers, re) { return headers.findIndex(h => re.test(h)); }
+
+function toLines(value, forceBullets) {
+  const splitter = /[•●]/.test(value) ? /\n+|\s*[•●]\s*/ : /\n+|;\s*(?=\S)/;
+  const parts = value.split(splitter).map(s => s.trim().replace(/^[-•●·–*]\s*/, '')).filter(Boolean);
+  const bullet = forceBullets || parts.length > 1;
+  return parts.map(text => /:$/.test(text) && text.length < 40 ? { text: text.replace(/:$/, ''), bullet: false, weight: 600, gap: '6px' } : { text, bullet, weight: 400, gap: '0' });
+}
+
+const SUMMARIES = {
+"A*STAR": {"format":"Two short panel interviews, each with 3 senior A*STAR scientists or leaders; First round: 20-minute Zoom call; Final round: 15-minute in-person interview","rounds":"Submit your application; First round (20 min, Zoom): panel of 3 principal scientists from A*STAR research institutes; Final round (15 min, in person): panel of senior A*STAR leaders, including the Deputy Chief Executive (Research)","qs":"First round:; Tell us about yourself and your research experience; What leadership roles have you taken in research projects?; How will AI affect your areas of interest?; If AI can do so much, what is the role of researchers?; If AI changed your research plans and you could only do a similar project involving AI, how would you react?; Why would A*STAR benefit from having you?; Final round:; Tell us about the research you've done; Have you dealt with conflict in a research team?; If you found your data was wrong just before a presentation to very important people, what would you do?; Why did you include non-English-speaking universities in your application?","tips":"From A*STAR:; Read A*STAR's website and its different scholarship schemes; Check how your research interests fit A*STAR's work; Get familiar with the curriculum of the university course you're applying for; PhD applicants: find out whether your universities have a qualifying exam","take":"Two short panel interviews with senior scientists. Expect to talk about your own research in depth, how AI is changing science, and how you'd handle teamwork and research-integrity situations."},
+"PSC (MSF)": {"format":"Applied through the PSC gateway; Several rounds ending in a board interview at the MSF building","rounds":"PSC application and personal statement; Psychometric assessment (same as the PSC PAE); Recorded video interview: 5 questions, about 30 seconds to prepare and 1-2.5 minutes to answer; Online interview with MSF staff (not everyone gets this); Board interview","qs":"How would your friends describe you?; Why are you applying for the MSF scholarship?; Share a time you set a high standard and worked to achieve it; Share a struggle and how you overcame it; Describe a recent policy in the news and your view on it; What MSF policy would you change?; What would you do if you are not offered this scholarship?","tips":"Write your personal statement on social issues you know well and care about, as it shapes your interview; A statement focused on one ministry's work is more likely to be referred to that ministry; Use your PAE results to think about how you present yourself; Prepare for a range of video questions, since everyone gets different ones","take":"Your personal statement steers the whole process, so write about social issues you genuinely understand and care about."},
+"DSTA": {"format":"Interview focused heavily on your personal statement and your chosen field","rounds":"Application with personal statement; Interview","qs":"Questions about your personal statement and how it fits what DSTA looks for; Why this field over others DSTA is known for (e.g. biomedical vs programming); In-depth technical questions on the field you say you're interested in","tips":"Research in depth the role or field you want in DSTA; Only claim interests you genuinely have, as interviewers probe deeply and can tell if you're bluffing; Be ready to explain choices that seem to differ from your past experience; Know exactly what you wrote in your personal statement","take":"Interviewers dig deep into your field of interest, so be authentic and know your chosen area well."},
+"EDB": {"format":"Recorded video interview plus game-based assessments, similar to PSC; One attempt per question","rounds":"Application; Video interview; 4 game-based assessments: matching patterns, memorising and summing numbered bubbles, memorising patterns, spotting the odd shape out","qs":"Introduce yourself and why you're applying to EDB; Why a public service career, and what has prepared you for it?; What is Singapore's biggest economic challenge and how can EDB respond?; Should Singapore tighten foreign manpower rules?; Describe a challenge you overcame and what you learnt; What 3 qualities make you a good fit for EDB?","tips":"Practise answering out loud within a time limit, since you only get one attempt; Read up on Singapore's economy and EDB's role; Practise memory and pattern puzzles for the games","take":"A recorded interview on economics and public service, plus short memory and pattern games."},
+"MOHH / Allied Health Related": {"format":"Panel interview of about 15 minutes with 3-4 panellists, often including practising healthcare professionals; Some include a scenario question","rounds":"Application; Panel interview, sometimes with a role-play scenario (e.g. a demanding patient at night)","qs":"Tell us about yourself; Why this healthcare profession?; What makes you stand out?; What do you know about Singapore's healthcare system?; What does public service mean to you?; What are the roles of a nurse, and which track interests you?; Leadership experience and how you handled a conflict; Scenario: how would you respond to a patient demanding unprescribed medicine?","tips":"Learn how Singapore's public and private healthcare sectors work; Understand the specific profession and its career tracks; Have a clear, personal reason for choosing healthcare; For scenarios, put patient safety and proper procedure first, and explain why","take":"Show you understand the profession and Singapore's healthcare system, and have a genuine reason to serve patients."},
+"NUS": {"format":"University admission and scholarship applications through NUS, with Aptitude-Based Admissions (ABA) for some courses","rounds":"Apply for up to 8 courses; Supplementary written responses for some courses; Writing test (mainly for those with a C or below for GP); Interview (for some applicants)","qs":"Application and scholarship essays share the same questions; Short-answer prompts with character limits about yourself and your interests","tips":"You can choose double degrees and some majors after you start university; Aptitude-based responses matter a lot, so don't rely on grades alone; Tailor your scholarship answers rather than copying your application ones; Watch the character limits and plan your answer structure","take":"Strong grades alone may not be enough. Put real effort into the written responses for each course."},
+"Humanities Scholarship Programme": {"format":"Group interview with about 5 candidates; Shorter and more straightforward than many expect","rounds":"Online application with documents (photo, family details); Essay of 500-800 words answering one of two set questions; Group interview with individual questions and a group discussion","qs":"Introduce yourself and your aspirations; How would you convince students to take the Humanities over the Sciences?; Group discussion: should Singapore universities ban ChatGPT?; Essay: a controversial world issue and how you'd address it; Essay: a challenge facing Singapore society and how you'd address it; You may be asked about a book you've read","tips":"Keep your essay's scope narrow given the word limit; Pick an essay topic you genuinely care about; Submit at least a day early to avoid technical issues; In the group, listen, don't interrupt, and give quieter members a chance; Know what you want to say rather than rushing to speak first; Use current affairs as examples to show you're well read","take":"A short group interview where thoughtful contributions and good group manners matter more than speaking first."},
+"Language Elective": {"format":"Short, informal interview of about 10-15 minutes with two teachers; Part in the foreign language, part in English","rounds":"Application with a personal statement; Interview at the MOE Language Centre","qs":"In the language: what part of the culture interests you? What did you enjoy at the MOE Language Centre?; Why did you start learning this language?; How will the language help your other studies or future career?; What qualities do you have as a scholar?; How will you spread your interest in the language to others?; Leadership and VIA experiences; A current affairs issue in Singapore that interests you","tips":"The language section is about the level of an oral exam, so practise conversation; Most English questions come from your write-up, so know it well; Prepare a few points you really want to share, since time is short; Show genuine interest in the culture, not just the language","take":"A relaxed chat in the language and in English. Know your write-up and show real interest in the culture."},
+"MOE Pre-U": {"format":"Interview of about 10-20 minutes with 2 interviewers, usually current or former principals","rounds":"Application with a personal statement; Interview (held on Zoom in recent years)","qs":"Tell us about yourself and why you are applying; What distinguishes you from other candidates?; What challenge have you faced as a leader?; What are your strengths and weaknesses?; What self-led initiatives have you started?; What is your leadership style?; What local issue are you passionate about?; What international news have you read about recently?; Questions on recent education speeches or ideas","tips":"Use tea sessions with school leaders as practice and note their feedback; Re-read your personal statement, as most questions come from it; Only write things in your statement you can talk about honestly; Read up on major news close to the interview date; List common questions and practise with friends or mentors; Record yourself to spot habits in how you speak","take":"Most questions come from your personal statement, so be genuine and know it well, and keep up with the news."},
+"MOE Teaching (Local)": {"format":"Written scenario task, a 5-minute teaching demonstration, then a panel interview","rounds":"Written task on a workplace ethics scenario (e.g. a colleague breaking a rule); 5-minute lesson to the panel, who may role-play a rowdy class; Interview on your lesson and your motivations","qs":"Why do you want to teach?; What did you think of your lesson? What would you change?; Why did you design your lesson this way?; Your view on a recent MOE policy (e.g. DSA); What is the biggest challenge teachers face, and how would you handle burnout?; How would you motivate unenthusiastic students?; What is a teacher's role in student mental health?; If offered both, would you choose teaching or your other option?; What are your views on tuition?","tips":"Pick a simple lesson topic and rehearse it to fit 5 minutes; Focus on explaining clearly rather than complex content; Stay calm if the panel acts disruptive during your lesson; Read up on recent MOE policies; Be ready to explain why teaching over your other choices","take":"Expect to teach a short lesson and handle an ethics scenario. Clear explanation and a genuine reason to teach matter most."},
+"Regional Studies Programme (RSP)": {"format":"No interview or personal statement; You indicate interest to your teachers and the school submits your name","rounds":"Must have taken RSP in secondary school; Need at least a B for Malay or Bahasa Indonesia at O Levels (the school can appeal if you narrowly miss it); H2 History is a prerequisite; A Malay oral test in September of JC1","qs":"No interview questions; the oral test is conversational Malay","tips":"Only take it up if you have a genuine interest in Southeast Asia and languages, as it runs for two years; Weekly conversational Malay lessons are relaxed, with no tests or assignments; Students from Bahasa Indonesia backgrounds may need to adjust to Malay; It is a rare scholarship that stands out on your portfolio","take":"Almost everyone eligible gets it. The real commitment is two years of weekly language lessons and H2 History."},
+"MINDEF Scholarship": {"format":"Panel interview with a strong focus on current affairs and defence policy","rounds":"Application; Panel interview","qs":"Introduce yourself and why you want this scholarship; How should Singapore respond to US-China tensions?; Should Singapore lean towards China as the global order shifts?; How does Singapore reconcile its stances on Gaza and Myanmar?; What could be improved in the recent Budget?; What do you think of the screen-time guidelines for youths?; Should NS sports deferment extend to e-sports?; Describe yourself in 3 words; Would you prefer a diplomatic career or a multi-faceted defence career?","tips":"Read up on major international issues and Singapore's stance on them; Expect follow-up questions that challenge your view; Keep up with local policy news such as the Budget and NS policies; If you have applied elsewhere (e.g. MFA), be ready to explain why MINDEF","take":"Expect probing current-affairs questions, from geopolitics to local policy, with follow-ups that test how well you defend your views."},
+"SAF Scholarship": {"format":"Panel interview with the scholarship board, about 30 minutes; The chairman starts, then a lead interviewer takes over","rounds":"Application (with a video interview); Board panel interview","qs":"Why this university and course?; How does your degree help your SAF career?; Why the SAF Scholarship over other scholarships?; Are you prepared to become a service chief one day?; What will be your biggest contribution to the SAF?; Questions on international issues (e.g. China, Russia, Ukraine) and Singapore's position; Is ASEAN important to Singapore?; How will technology change the SAF?; Describe your leadership style; What is your biggest flaw as a leader?","tips":"Be ready to link your course choice clearly to an SAF career; Stay calm and smile if an interviewer sounds challenging; Read up on major international conflicts and Singapore's relations; Revisit your video interview answers, as they may come up; Prepare at least two examples of your leadership style","take":"The board tests how committed you are to an SAF career and how your studies, leadership and world view fit it."},
+"Jardine": {"format":"Video interview with recorded answers, followed by a second interview over Zoom","rounds":"Application; Recorded video interview: 8 questions, 1-3 minutes to think and 2-4 minutes to answer, one take each; Second interview (virtual)","qs":"Tell us about your family and hometown; Why your chosen field of study?; What makes you a deserving Jardine scholar?; Where do you see yourself in 5 and 15 years?; What global issue concerns you?; Describe a project you led and what it taught you about leadership; What achievement are you most proud of?; How did your Oxford or Cambridge interviews and applications go?","tips":"Practise answering out loud within a time limit, since you only get one take; Prepare stories about family, community service, CCA and leadership; Have a considered view on one global issue; Be ready to discuss your Oxford or Cambridge application","take":"Questions are fairly predictable, so prepare clear stories about yourself, your leadership and your plans."},
+ "Engineering and Tech Programme Scholarship (ETPS)": {
+  "format": "Group interview: about 5 students with a 5-member panel; Individual segment, then a group segment; Very close to the mock interview format",
+  "rounds": "Pick a STEM topic card (e.g. drones, 3D printing, satellites, AI, bridges); Receive a problem statement shared by the group (e.g. coastal protection, ageing population, climate change, healthcare); About 2 minutes each to answer three set questions on your card; Whole-group question on recent STEM developments; Group task: combine everyone's cards into one solution in about 10 minutes, using the whiteboard; Group presentation of about 5 minutes; Short informal reflection to close",
+  "qs": "Why did you choose this card?; What are the STEM principles behind it?; How can it address the problem statement?; How does it relate to you?; What recent STEM development have you read about?; Where do you get your science news from?; What did you learn from this experience?; How likely are you to pursue a career in engineering?",
+  "tips": "Pick a versatile technology that can link to many problem statements; The group task matters a lot and can make up for a nervous individual segment; Keep up with STEM news; Use the whiteboard and share presentation time fairly",
+  "take": "A group interview built around STEM topic cards and a shared problem statement. Show clear thinking and good teamwork."
+ },
+ "Prime Minister's Book Prize": {
+  "format": "Interview conducted in English and in your Mother Tongue; Questions often build on your written statement",
+  "rounds": "Written application and statement; Interview segments in English and in your Mother Tongue",
+  "qs": "Why is bilingualism still important in a multiracial society?; Who is responsible for the declining attention to bilingualism?; What learning experiences shaped your mastery of each language?; How can bilingualism be promoted among youth?; Why do young people avoid using their Mother Tongue?; How will your Mother Tongue be useful in your future career?; How has being multilingual or from a mixed background shaped your outlook?; How would you convince a monolingual friend to learn a new language?",
+  "tips": "Reflect on your own language-learning journey over the past 10 years and the people who helped; Prepare specific examples of how you use each language outside class; Have a view on how to keep Mother Tongue relevant for youth; Expect follow-up questions on anything in your statement",
+  "take": "Expect reflective questions on bilingualism and your own language journey, asked in both English and your Mother Tongue."
+ },
+ "SAF Young Leader Award (SYLA)": {
+  "format": "Three stages: essay, interview and a group case study; Interview covers your personal statement first, then current affairs",
+  "rounds": "Essay: choose from several defence and current-affairs questions; Interview: leadership and CCA experiences, then current affairs; Case study: clues to find the case studies are emailed the night before; Group discussion of about 1 hour per case study, groups of about 10-12 split in two; Presentation to a panel (about 10-15 minutes) with Q&A, plus a peer review",
+  "qs": "Introduce yourself; Describe your leadership style in 3 words; What kind of leader are you in your CCA?; What should the SAF work on?; What is the most significant issue we face today?; Has the world become more stable?; Questions moving from international (South China Sea) to regional (ASEAN) to local (pandemic readiness)",
+  "tips": "Write the essay like a well-structured GP essay with clear arguments and examples; Read international news and link events together; Take a stand and defend it calmly, even if interviewers push back; Check your email the night before the case study and research early; In the group, contribute actively but also build on others' ideas; Slides matter least; clear analysis and justification matter most",
+  "take": "Read widely on defence and current affairs, know your leadership stories, and contribute thoughtfully in the group case study."
+ },
+ "PSC (Public Administration)": {
+  "format": "Multi-stage process ending in a panel interview with the PSC Board (about 6-7 people at a long table, with note-takers)",
+  "rounds": "Online application form; Video interview (4 questions, limited attempts), personality quiz and game-based assessment; Rest of the PAE; Interview with a psychologist; PSC Board panel interview; Offer (about 3 months from application in the Early Provisional Round)",
+  "qs": "Confirming university and course choices, and why or why not overseas; What are you doing after your A Levels?; Why this course given current industry trends?; Questions on experiences you mentioned to the psychologist; Where do you get your news from? Do you read books?; How should Singapore respond to recent US tariff threats?; What is the root cause of mental health issues in Singapore?; Should we abolish the PSLE?; Would you study overseas if the Board asked you to?",
+  "tips": "Save your video interview answers, as the panel refers back to them; Be honest and consistent with the psychologist, who writes a report the panel reads; Prepare around the 4Cs: Commitment, Character, Choices, Current Affairs; Read up on the very latest news before the interview; It is fine to admit when you don't know something; Make eye contact with everyone at the table and share your own opinions",
+  "take": "The Board tailors questions to your profile, so know your own application well and keep up with the latest current affairs."
+ },
+ "MFA Scholarship": {
+  "format": "Three rounds: first board interview, a full-day assessment centre, and a final board interview",
+  "rounds": "First board interview: about 40 minutes with 4 directors; Assessment centre (about 10 hours): briefing report and presentation, consular role-play, admin and budgeting task, group taskforce discussion; Interview with a psychologist; Final board interview: about 15-30 minutes with senior MFA leaders",
+  "qs": "Why MFA and why this scholarship?; What book most shaped your view of Singapore's foreign policy?; If you were the Prime Minister, what would be your biggest foreign-policy concern?; Can Singapore avoid taking sides in a multipolar world?; What is the day-to-day job of a Foreign Service Officer?; What challenges do officers face when posted overseas?; What will you do if Singapore's stance clashes with your beliefs?; What aspect of Singapore's foreign policy do you disagree with?; What are your weaknesses?",
+  "tips": "Know Singapore's 5 key foreign-policy principles and weave them into your answers; Watch the Foreign Minister's speeches and read opinion pieces from many sources; Analyse issues from economic, political and social angles; The assessment centre uses fictional scenarios, so focus on mindset rather than content; Have a clear, consistent story for 'why MFA'; Be patient, as MFA can be slow to reply, and stay resilient through rejections",
+  "take": "MFA looks closely at who you are. Have a genuine, consistent 'why MFA' and ground your answers in Singapore's foreign-policy principles."
+ },
+ "PSC (Psychometric Assessment Exercise)": {
+  "format": "Timed online tests: Critical Thinking, Numerical Reasoning and a Game-Based Assessment",
+  "rounds": "Critical Thinking (Watson-Glaser style): assumptions, arguments, deductions, inferences and interpretation, in five separate sections you can't return to; Numerical Reasoning: 'which quantity is larger' and data-sufficiency questions (about 25 in total); Game-Based Assessment: shape fitting, pattern rotation, balloon sums, marble routes and fast 'which side is larger' sums",
+  "qs": "Which is larger: 1/37 - 1/73 or 1/59 - 1/95?; Which is larger: 1/2 x 1/5 x 1/8 or 0.5 x 0.2 x 0.12?; Is an argument strong or weak? (e.g. arms export regulation, senior managers working junior roles); Can a conclusion be deduced only from the information given?",
+  "tips": "Practise with Watson-Glaser tests, especially assumptions and strong vs weak arguments; Judge only on the information given, not what you believe to be true; Read the instructions carefully and note every section on your rough paper; Take your time on Critical Thinking; most finish early; Use rough paper for numerical questions; In the games, skip a level you're stuck on and keep moving; For the rotation game, start with corners and simple tiles",
+  "take": "Speed and careful reading matter more than advanced maths. Practise Watson-Glaser questions and stay calm under time pressure."
+ },
+ "MHA Scholarship": {
+  "format": "Four stages, ending in a relatively relaxed interview focused on personal fit",
+  "rounds": "Application on BrightSparks; Psychometric assessment (similar to the PSC PAE); Assessment centre: group discussion and presentation, a debate, and an individual slide presentation to stakeholders; Final interview with senior Home Team leaders",
+  "qs": "Why the Home Team?; Tell us about your personal experiences and background; Why these university choices?; What are your strengths and weaknesses?; What motivates you?; Leadership-related questions",
+  "tips": "Consider an HTX or Home Team internship first, which can lead to letters of support; Read up on past HTX and Home Team projects, as case studies are based on them; Speak up in group segments, while giving others a chance too; Think big picture rather than deep technical detail; Know the Home Team's vision, mission and values; Have a firm 'why'",
+  "take": "MHA values genuine passion for the Home Team and cultural fit. Background knowledge of real Home Team projects helps at the assessment centre."
+ }
+};
+
+function noBond(t) {
+  if (!t) return '';
+  const parts = t.match(/[^.!?]+[.!?]*(\s+|$)/g) || [t];
+  return parts.filter(s => !/\bbond|bonded|bond-free|serve (a|an|your)? ?\d|\d+[- ]year (bond|service)|service obligation|work (for|at) [^.]* for \d/i.test(s)).join('').replace(/\s*\(\s*\)/g, '').trim();
+}
+
+const ABOUT = {
+"PSC (MSF)": ["Ministry of Social and Family Development Scholarship","A university scholarship for a career in social services and family policy at MSF. You work in the ministry after graduating."],
+"DSTA": ["Defence Science and Technology Agency Scholarship","A scholarship for students keen on engineering and technology for Singapore's defence. You work at DSTA after graduating."],
+"EDB": ["Economic Development Board Scholarship","A university scholarship for a career growing Singapore's economy, such as attracting investment. You work at EDB after graduating."],
+"MOHH / Allied Health Related": ["MOH Holdings Healthcare Scholarships","Scholarships for degrees in nursing, allied health (e.g. physiotherapy) and other healthcare fields. You work in a public hospital or healthcare institution after graduating."],
+"NUS": ["NUS Admissions and Scholarships","Not one scholarship: covers applying to the National University of Singapore and its own merit and faculty scholarships."],
+"A*STAR": ["A*STAR Scholarship","A scholarship from Singapore's Agency for Science, Technology and Research for students aiming for a research career in science or engineering."],
+"MOE Teaching (Local)": ["MOE Teaching Scholarship","A scholarship that funds your university degree for a career as a teacher in Singapore's public schools. You teach for a set number of years after graduating."],
+"Humanities Scholarship Programme": ["Humanities Scholarship Programme (HSP)","A Ministry of Education scholarship for JC students strong in the humanities. It comes with enrichment programmes, seminars and an allowance during JC."],
+"Regional Studies Programme (RSP)": ["Regional Studies Programme Scholarship (RSP)","A Ministry of Education JC scholarship for students who took the Regional Studies Programme in secondary school. You study Malay or Bahasa Indonesia and Southeast Asian culture, with overseas immersion trips."],
+"MINDEF Scholarship": ["Ministry of Defence Scholarship","A university scholarship for a career in defence policy and administration at the Ministry of Defence, as a civilian rather than a uniformed officer."],
+"Jardine": ["Jardine Foundation Scholarship","A private scholarship that funds undergraduate study at the University of Oxford or Cambridge. There is no work commitment (bond) after graduating."],
+ "Engineering and Tech Programme Scholarship (ETPS)": [
+  "Engineering and Tech Programme Scholarship",
+  "A JC scholarship from the Ministry of Education for students keen on engineering and technology. It supports you during JC with enrichment in STEM."
+ ],
+ "Prime Minister's Book Prize": [
+  "Prime Minister's Book Prize",
+  "The Prime Minister's Book Prize in Singapore is an annual national award to promote effective bilingualism in English and a Mother Tongue Language."
+ ],
+ "SAF Young Leader Award (SYLA)": [
+  "SAF Young Leader Award",
+  "An award from the Singapore Armed Forces (SAF) for JC students interested in defence and leadership. It offers mentorship and a pathway towards an SAF scholarship later."
+ ],
+ "PSC (Public Administration)": [
+  "Public Service Commission Scholarship (Public Administration)",
+  "The main government scholarship for university. It funds your degree locally or overseas, and you then work in the civil service for a set number of years."
+ ],
+ "MFA Scholarship": [
+  "Ministry of Foreign Affairs Scholarship",
+  "A university scholarship for students who want to become diplomats. You study, then work at the Ministry of Foreign Affairs, including postings overseas."
+ ],
+ "PSC (Psychometric Assessment Exercise)": [
+  "PSC Psychometric Assessment Exercise (PAE)",
+  "Not a scholarship itself. It is the online test you take when applying for Public Service Commission scholarships, and some other agencies use something similar."
+ ],
+ "MHA Scholarship": [
+  "Ministry of Home Affairs / HTX Scholarship",
+  "A university scholarship from the Home Team (e.g. police, civil defence, and HTX, the Home Team's science and technology agency). You work in the Home Team after graduating."
+ ],
+ "SAF Scholarship": [
+  "Singapore Armed Forces Scholarship",
+  "A university scholarship for those who want a career as an officer in the Army, Navy or Air Force. You serve in the SAF after graduating."
+ ],
+"PSC (Public Administration)": ["PSC Scholarship (Public Administration)","The Public Service Commission's main merit-based government scholarship. You study locally or overseas, then work across ministries and statutory boards on policy and its implementation. The bond is 4 years for local study and up to 6 years overseas."],
+"MFA Scholarship": ["Foreign Service Scholarships (MFA)","For students who want to represent Singapore internationally as diplomats. There are two schemes, the PSC Scholarship (Foreign Service) and the Singapore Government Scholarship (Foreign Service), both applied for through the PSC portal. The bond is 6 years for English-speaking countries and 5 years for others."],
+"MHA Scholarship": ["MHA Scholarships (incl. HTX)","Full sponsorship of your degree locally or overseas, leading to a uniformed or civilian career in the Home Team. The HTX Scholarship is for science and technology careers with the Home Team Science and Technology Agency."],
+"MINDEF Scholarship": ["Defence Merit Scholarship (MINDEF)","MINDEF's top scholarship for civilian (non-uniformed) careers. After graduating you join as a Defence Executive Officer, working in areas such as defence policy, diplomacy and cyber defence."],
+"SAF Scholarship": ["The SAF Scholarship","Awarded through the PSC to those who want a military career defending Singapore. You must enter and do well in Officer Cadet School, and you can only apply before starting university. Scholars are groomed for senior command roles in the SAF."],
+"DSTA": ["DSTA Scholarship","For students passionate about science and technology who want a career in Singapore's defence technology community, in areas such as engineering, digital technology and cybersecurity. The bond is 4 to 6 years depending on where you study."],
+"EDB": ["EDB Scholarship","From the Economic Development Board, the agency that attracts investment and grows industries in Singapore. It sponsors your degree at top overseas universities, includes foreign language training, and leads to a career working with international businesses."]
+};
+
+const norm = s => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+function lookup(map, title) {
+  if (map[title]) return map[title];
+  if (map[title + ' Scholarship']) return map[title + ' Scholarship'];
+  const t = norm(title);
+  const key = Object.keys(map).find(k => norm(k) === t) || Object.keys(map).find(k => t.startsWith(norm(k)) || norm(k).startsWith(t));
+  return key ? map[key] : null;
+}
+
+const SECTIONS = [
+  ['Interview format', /interview format/],
+  ['Selection rounds', /selection round/],
+  ['Common questions', /common question/],
+  ["Seniors' tips", /tip/]
+];
+
+const LOGO_DOMAINS = [
+  [/engineering and tech|\bETPS?\b/i, 'moe.gov.sg'],
+  [/VJC Scholarship|Lee Phui Mun/i, 'victoriajc.moe.edu.sg'],
+  [/\bMSF\b|social and family/i, 'msf.gov.sg'],
+  [/\bPSC\b|public service commission/i, 'psc.gov.sg'],
+  [/a\*?star|agency for science/i, 'a-star.edu.sg'],
+  [/\bDSTA\b|defence science/i, 'dsta.gov.sg'],
+  [/\bSAF\b|\bMINDEF\b|armed forces|defence/i, 'mindef.gov.sg'],
+  [/\bMHA\b|home affairs|police|\bSPF\b|\bSCDF\b/i, 'mha.gov.sg'],
+  [/\bMFA\b|foreign affairs|foreign service/i, 'mfa.gov.sg'],
+  [/\bEDB\b|economic development board/i, 'edb.gov.sg'],
+  [/\bMOHH\b|allied health|healthcare|medicine/i, 'mohh.com.sg'],
+  [/\bMSF\b|social and family/i, 'msf.gov.sg'],
+  [/\bCSIT\b/i, 'csit.gov.sg'],
+  [/govtech|\bGovTech\b/i, 'tech.gov.sg'],
+  [/\bIMDA\b/i, 'imda.gov.sg'],
+  [/\bMAS\b|monetary authority/i, 'mas.gov.sg'],
+  [/\bLTA\b|land transport/i, 'lta.gov.sg'],
+  [/\bURA\b/i, 'ura.gov.sg'],
+  [/\bHDB\b/i, 'hdb.gov.sg'],
+  [/\bPUB\b/i, 'pub.gov.sg'],
+  [/\bNEA\b/i, 'nea.gov.sg'],
+  [/\bCAAS\b|civil aviation/i, 'caas.gov.sg'],
+  [/jardine/i, 'jardines.com'],
+  [/temasek/i, 'temasek.com.sg'],
+  [/\bGIC\b/i, 'gic.com.sg'],
+  [/\bNUS\b|national university of singapore/i, 'nus.edu.sg'],
+  [/\bNTU\b|nanyang technological/i, 'ntu.edu.sg'],
+  [/\bSMU\b/i, 'smu.edu.sg'],
+  [/\bSUTD\b/i, 'sutd.edu.sg'],
+  [/hong kong|\bHKU\b/i, 'hku.hk'],
+  [/\bMOE\b|ministry of education|teaching|humanities scholarship|\bHSP\b|language elective|\bLES\b|regional studies|\bRSP\b|pre-?u scholarship|jc scholarship|book prize|lee kuan yew|\bLKY\b/i, 'moe.gov.sg'],
+];
+const LOGO_SKIP = /brightsparks|google\.|forms\.gle|padlet|vjc\.|for\.edu\.sg|bit\.ly|tinyurl/i;
+const LOCAL_LOGOS = [[/\bMSF\b|social and family/i, 'assets/img/logos/cf982ea332.png'], [/\bNUS\b|national university of singapore/i, 'assets/img/logos/3173a593e4.png'], [/\bDSTA\b|defence science/i, 'assets/img/logos/b0ee9a2722.png'], [/\bMINDEF\b|ministry of defence|defence merit/i, 'assets/img/logos/69434abc7c.png'], [/\bSAF\b|armed forces|young leader/i, 'assets/img/logos/cfb6b8c4f0.png'], [/VJC Scholarship|Lee Phui Mun/i, 'assets/img/logos/c2df1c0749.png'], [/mext|monbukagakusho|japanese government|emb-japan/i, 'assets/img/logos/f121817c6d.png'], [/brightsparks/i, 'assets/img/logos/28599a2dc9.png']];
+function logoFor(name, link) {
+  name = name || '';
+  const local = LOCAL_LOGOS.find(([re]) => re.test(name)) || LOCAL_LOGOS.find(([re]) => re.test(link || ''));
+  const hit = LOGO_DOMAINS.find(([re]) => re.test(name));
+  let domain = hit ? hit[1] : '';
+  if (!hit && link) {
+    try { const h = new URL(/^https?:/i.test(link) ? link : 'https://' + link).hostname.replace(/^www\./, ''); if (!LOGO_SKIP.test(h)) domain = h; } catch (e) {}
+  }
+  const acr = /\bVJC\b/.test(name) ? 'VJC' : (name.match(/\(([A-Z*&]{2,6})\)/) || [])[1];
+  const initials = acr || name.replace(/[^A-Za-z\s]/g, ' ').split(/\s+/).filter(w => w && /[A-Z]/.test(w[0]) && !/^(The|Of|And|For|In|On)$/.test(w)).slice(0, 3).map(w => w[0]).join('') || '•';
+  return {
+    initials: initials.slice(0, 4),
+    hasLogo: !!(local || domain),
+    logoSrc: local ? local[1] : (domain ? 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=128' : ''),
+    onLogoError: e => { e.currentTarget.style.display = 'none'; },
+    onLogoLoad: e => { const i = e.currentTarget, w = i.naturalWidth; if (w < 32) i.style.display = 'none'; else if (w < 64) i.style.padding = Math.max(7, (44 - w) / 2) + 'px'; }
+  };
+}
+
+
+var E = function (s) { return ECG.esc(s); }, I = function (n) { return ECG.icon(n); };
+var records = [], q = '', type = 'All';
+var FBKEY = { 'Interview format': 'format', 'Selection rounds': 'rounds', 'Common questions': 'qs', "Seniors' tips": 'tips' };
+function build(rows) {
+  var h = rows[0].map(function (x) { return x.trim().toLowerCase(); });
+  var iType = col(h, /^type/), iName = col(h, /interview round|^scholarship/), iCycle = col(h, /cycle|year/), iTake = col(h, /takeaway/), iFull = col(h, /full name/);
+  var sec = SECTIONS.map(function (s) { return [s[0], col(h, s[1])]; });
+  var cell = function (r, i) { return i >= 0 && r[i] ? r[i].trim() : ''; };
+  var linkCols = h.map(function (x, i) { return /link|url/.test(x) ? i : -1; }).filter(function (i) { return i >= 0; });
+  return rows.slice(1).map(function (r) {
+    var title = cell(r, iName).replace(/\s+/g, ' '); if (!title) return null;
+    var fb = lookup(SUMMARIES, title) || {};
+    var link = linkCols.map(function (i) { return cell(r, i); }).filter(function (v) { return /^(https?:\/\/|www\.)/i.test(v); })[0] || (THREAD_LINKS[title] ? THREAD_BASE + THREAD_LINKS[title] : '');
+    if (link && !/^https?:/i.test(link)) link = 'https://' + link;
+    var ab = lookup(ABOUT, title) || [];
+    return { title: title, type: cell(r, iType) || 'Other', cycle: cell(r, iCycle), take: cell(r, iTake) || fb.take || '', link: link,
+      full: cell(r, iFull) || ab[0] || '', about: ab[1] || (cell(r, iType) === 'Pre-U' ? 'An award or scholarship you apply for while in JC.' : 'A scholarship that supports your university studies.'),
+      sections: sec.map(function (s) { return { label: s[0], value: cell(r, s[1]) || fb[FBKEY[s[0]]] || '' }; }).filter(function (s) { return s.value && s.value !== '-'; }),
+      search: r.join(' ').toLowerCase() };
+  }).filter(Boolean);
+}
+function fromSummaries() {
+  return Object.keys(SUMMARIES).map(function (k) {
+    var fb = SUMMARIES[k], ab = lookup(ABOUT, k) || [];
+    return { title: k, type: 'Scholarship', cycle: '', take: fb.take || '', link: THREAD_LINKS[k] ? THREAD_BASE + THREAD_LINKS[k] : '', full: ab[0] || '', about: ab[1] || '',
+      sections: Object.keys(FBKEY).map(function (l) { return { label: l, value: fb[FBKEY[l]] || '' }; }).filter(function (s) { return s.value; }), search: (k + ' ' + JSON.stringify(fb)).toLowerCase() };
+  });
+}
+function lines(v) { var ls = toLines(v, true); return '<ul>' + ls.map(function (l) { return l.bullet === false ? '</ul><b style="display:block;margin-top:8px">' + E(l.text) + '</b><ul>' : '<li>' + E(l.text) + '</li>'; }).join('') + '</ul>'; }
+function render() {
+  var types = Array.from(new Set(records.map(function (r) { return r.type; }))).sort();
+  document.querySelector('[data-types]').innerHTML = types.length > 1 ? ['All'].concat(types).map(function (t) { return '<button type="button" class="chip' + (t === type ? ' is-active' : '') + '" aria-pressed="' + (t === type) + '" data-type="' + E(t) + '">' + E(t) + '</button>'; }).join('') : '';
+  var s = q.toLowerCase();
+  var list = records.filter(function (r) { return (type === 'All' || r.type === type) && (!s || r.search.indexOf(s) > -1 || r.title.toLowerCase().indexOf(s) > -1); });
+  document.querySelector('[data-count]').textContent = list.length + (list.length === 1 ? ' interview guide' : ' interview guides');
+  document.querySelector('[data-list]').innerHTML = list.length ? '<div class="journey-list">' + list.map(function (r) {
+    var lg = logoFor(r.title, r.link);
+    return '<article class="jcard" style="grid-template-columns:1fr"><div class="jcard__main"><div class="sch__head"><div class="logo">' + (lg.hasLogo ? '<img src="' + E(lg.logoSrc) + '" alt="" loading="lazy" onerror="this.parentNode.textContent=\'' + E(lg.initials) + '\'">' : E(lg.initials)) + '</div>' +
+      '<div><h3>' + E(r.title) + '</h3>' + (r.full && r.full !== r.title ? '<div class="muted" style="font-size:var(--fs-sm)">' + E(r.full) + '</div>' : '') + '</div></div>' +
+      '<div class="row" style="gap:6px"><span class="tag tag--maroon">' + E(r.type) + '</span>' + (r.cycle ? '<span class="tag">' + E(r.cycle) + '</span>' : '') + '</div>' +
+      (r.about ? '<p style="color:var(--ink-2);font-size:var(--fs-sm)">' + E(r.about) + '</p>' : '') +
+      (r.take ? '<div class="quote" style="grid-template-columns:1fr"><div><cite style="margin:0 0 4px">Seniors’ takeaway</cite><blockquote>' + E(r.take) + '</blockquote></div></div>' : '') +
+      (r.sections.length ? '<div class="faq">' + r.sections.map(function (x) { return '<div class="qa t-acc" data-open="false"><button class="qa__q" type="button"><span>' + E(x.label) + '</span></button><div class="t-acc-panel"><div class="t-acc-panel-inner"><div class="qa__a">' + lines(x.value) + '</div></div></div></div>'; }).join('') + '</div>' : '') +
+      '<div class="row">' + (r.link ? '<a class="btn btn--ghost" href="' + E(r.link) + '" target="_blank" rel="noopener">' + I('messages-square') + 'Read seniors’ full accounts</a>' : '') + '<a class="btn" href="' + BOOK_URL + '" target="_blank" rel="noopener">' + I('mic') + 'Book a mock interview</a></div>' +
+      '</div></article>';
+  }).join('') + '</div>' : '<div class="empty">No interview guides match. Try another name, like PSC or A*STAR.</div>';
+  ECG.initAccordions(document.querySelector('[data-list]'));
+}
+var BOOK_URL = 'https://for.edu.sg/vjcecgcappointment';
+function start() {
+  records = fromSummaries(); render();
+  var s = ECG.sheet(SHEET_URL);
+  var apply = function (d) { var r = build([d.head].concat(d.rows)); if (r.length) { records = r; render(); } };
+  if (s.cached) apply(s.cached); s.fresh.then(apply).catch(function () { });
+  document.querySelector('[data-q]').addEventListener('input', function (e) { q = e.target.value.trim(); render(); });
+  document.querySelector('main').addEventListener('click', function (e) { var t = e.target.closest('[data-type]'); if (t) { type = t.getAttribute('data-type'); render(); } });
+}
+if (window.ECG) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body>
+</html>

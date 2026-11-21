@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>New University Courses · ECG @ VJC</title>
+<meta name="description" content="Degrees just launched at Singapore&#x27;s universities, with who they suit, prerequisites and careers.">
+<meta name="theme-color" content="#8C151B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,600..800,0..100,0..1;1,9..144,600..800,0..100,0..1&display=swap">
+<link rel="stylesheet" href="assets/ecg.css">
+<script src="assets/ecg.js" defer></script>
+</head>
+<body data-page="new-university-courses">
+<main id="main">
+  <header class="phero">
+    <div class="wrap phero__in t-stagger">
+      <div data-crumbs class="t-stagger-line" style="display:grid;gap:14px"></div>
+      <h1 class="t-stagger-line t-stagger-line--2">New university courses</h1>
+      <p class="lead t-stagger-line t-stagger-line--3">Degrees that have just launched at the local universities, with who they suit, the subject prerequisites and where they lead.</p>
+      
+    </div>
+  </header>
+  <div class="page">
+    <div class="wrap stack">
+      <section class="block" aria-label="Search and filter">
+        <div class="filterbar">
+          <div class="searchfield"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-search"/></svg><input class="input" type="search" placeholder="Search, e.g. AI, sustainability, health" aria-label="Search new courses" data-q></div>
+          <div class="filterbar__row"><span class="filterbar__label">University</span><div class="filters" data-unis role="group" aria-label="University"></div></div>
+          <div class="filterbar__row"><span class="filterbar__label">Interest</span><div class="filters" data-ints role="group" aria-label="Interest"></div></div>
+          <span class="syncnote" data-count aria-live="polite"></span>
+        </div>
+      </section>
+      <div data-list aria-live="polite"></div>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+/* ---- Sheet link and helpers carried over from the previous version (logos now in assets/img/logos) ---- */
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTSo7WVP76Xgevtct5_MlxkztZcFGAsjPQy5cy6L0-BllcDbMlWNIcsseYBYyzikdUlkpbJemVSm9PI/pub?gid=1466825070&single=true&output=csv';
+const CACHE_KEY = 'vjc-ecg-new-courses-csv';
+const DETAIL_FIELDS = [
+  ['offered by', 'Offered by'],
+  ['who it is for', 'Who it is for'],
+  ['who is suitable', 'Who is suitable?'],
+  ['career', 'Career opportunities'],
+  ['prerequisite', 'Subject prerequisites'],
+  ['difference', 'How it differs from other programmes'],
+];
+const NUS_LOGO = 'assets/img/logos/3173a593e4.png';
+const UNI_LOGOS = [
+  [/\bNUS\b|national university of singapore/i, NUS_LOGO],
+  [/\bNTU\b|nanyang/i, 'assets/img/logos/e0ccd2954d.png'],
+  [/\bSIT\b|singapore institute of technology/i, 'assets/img/logos/2e09cf1440.png'],
+  [/\bSMU\b|singapore management/i, 'https://www.google.com/s2/favicons?domain=smu.edu.sg&sz=128'],
+  [/\bSUTD\b/i, 'https://www.google.com/s2/favicons?domain=sutd.edu.sg&sz=128'],
+  [/\bSUSS\b/i, 'https://www.google.com/s2/favicons?domain=suss.edu.sg&sz=128'],
+  [/lasalle|\bUAS\b|university of the arts/i, 'assets/img/logos/4c1ae58676.png'],
+];
+function logoFor(uni) { const hit = UNI_LOGOS.find(([re]) => re.test(uni || '')); return hit ? hit[1] : ''; }
+function initialsFor(uni) { return String(uni || '?').split(/[\s\/]+/)[0].slice(0, 4).toUpperCase(); }
+const MONTHS = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+
+function parseCSV(text) {
+  const rows = []; let row = []; let cur = ''; let q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) {
+      if (ch === '"' && text[i + 1] === '"') { cur += '"'; i++; }
+      else if (ch === '"') q = false;
+      else cur += ch;
+    } else if (ch === '"') q = true;
+    else if (ch === ',') { row.push(cur); cur = ''; }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && text[i + 1] === '\n') i++;
+      row.push(cur); rows.push(row); row = []; cur = '';
+    } else cur += ch;
+  }
+  if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+  return rows.filter(r => r.some(c => c.trim() !== ''));
+}
+
+function splitText(value) {
+  const lines = value.replace(/\r/g, '').split('\n').map(l => l.trim()).filter(Boolean);
+  const paras = [], bullets = [];
+  lines.forEach(l => {
+    if (/^[-•·–]\s*/.test(l)) bullets.push(l.replace(/^[-•·–]\s*/, ''));
+    else if (!bullets.length && l.includes('; ') && l.split('; ').length > 2) l.split(/;\s*/).forEach(x => x && bullets.push(x.replace(/\.$/, '')));
+    else paras.push(l);
+  });
+  return { paras, bullets, hasBullets: bullets.length > 0 };
+}
+
+function intakeInfo(s) {
+  const t = String(s || '').toLowerCase();
+  const mm = t.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*[\s-]+(\d{2,4})/);
+  if (mm) { let y = Number(mm[2]); if (y < 100) y += 2000; const mi = MONTHS.indexOf(mm[1]); return { year: String(y), sort: y * 12 + mi, label: mm[1][0].toUpperCase() + mm[1].slice(1) + ' ' + y }; }
+  const yy = t.match(/(20\d{2})/);
+  if (yy) return { year: yy[1], sort: Number(yy[1]) * 12 + 11, label: '' };
+  return { year: '', sort: 999999, label: '' };
+}
+function intakeSort(s) { return intakeInfo(s).sort; }
+function intakeSortOld(s) {
+  const m = String(s || '').toLowerCase().match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+(\d{4})/);
+  return m ? Number(m[2]) * 12 + MONTHS.indexOf(m[1]) : 999999;
+}
+
+
+var E = function (s) { return ECG.esc(s); }, I = function (n) { return ECG.icon(n); };
+var records = [], q = '', uniF = 'All', intF = 'All';
+function apply(text) {
+  var fixed = text.replace(/â€“/g, '–').replace(/â€”/g, '—').replace(/â€™/g, '’').replace(/â€˜/g, '‘').replace(/â€œ/g, '“').replace(/Ã©/g, 'é').replace(/Â /g, ' ');
+  var rows = parseCSV(fixed); if (rows.length < 2) return;
+  var h = rows[0].map(function (x) { return x.trim().toLowerCase(); }), col = function (re) { return h.findIndex(function (x) { return re.test(x); }); };
+  var ci = col(/^country/), ui = col(/^university$/), ii = col(/intake/), pi = col(/^programme/), ti = col(/interest/), ni = col(/^name/), ai = col(/^about/), li = col(/link/);
+  var country = '', uni = '';
+  records = rows.slice(1).map(function (r, idx) {
+    var cell = function (i) { return i >= 0 && r[i] ? r[i].trim() : ''; };
+    if (cell(ci)) country = cell(ci); if (cell(ui)) uni = cell(ui);
+    var name = cell(ni); if (!name) return null;
+    var link = cell(li); if (link && !/^https?:\/\//i.test(link)) link = 'https://' + link;
+    if (/^https?:\/\/[^/]+\/?((undergraduate-)?(programmes|programs|courses|degrees)\/?)?$/i.test(link)) link = '';
+    var fields = DETAIL_FIELDS.map(function (f) { var i = h.findIndex(function (x) { return x.indexOf(f[0]) > -1; }); var v = cell(i); return v && v !== '-' ? Object.assign({ label: f[1] }, splitText(v)) : null; }).filter(Boolean);
+    var info = intakeInfo(cell(ii)), raw = cell(ii);
+    return { uni: uni, name: name, type: cell(pi), intake: /^[a-z]{3,4}-\d{2}$/i.test(raw) && info.label ? info.label : raw,
+      interests: cell(ti).split(/;\s*/).map(function (x) { return x.trim(); }).filter(Boolean), about: cell(ai), link: link, fields: fields, search: (r.join(' ') + ' ' + uni).toLowerCase() };
+  }).filter(Boolean).sort(function (a, b) { return intakeSort(a.intake) - intakeSort(b.intake) || a.uni.localeCompare(b.uni); });
+  render();
+}
+function chips(vals, cur, key) { return ['All'].concat(vals).map(function (v) { return '<button type="button" class="chip' + (v === cur ? ' is-active' : '') + '" aria-pressed="' + (v === cur) + '" data-' + key + '="' + E(v) + '">' + E(v) + '</button>'; }).join(''); }
+function render() {
+  var unis = Array.from(new Set(records.map(function (r) { return r.uni; }).filter(Boolean)));
+  var ints = Array.from(new Set([].concat.apply([], records.map(function (r) { return r.interests; })))).sort();
+  document.querySelector('[data-unis]').innerHTML = chips(unis, uniF, 'uni');
+  document.querySelector('[data-ints]').innerHTML = ints.length ? chips(ints, intF, 'int') : '';
+  var s = q.toLowerCase();
+  var list = records.filter(function (r) { return (uniF === 'All' || r.uni === uniF) && (intF === 'All' || r.interests.indexOf(intF) > -1) && (!s || r.search.indexOf(s) > -1); });
+  document.querySelector('[data-count]').textContent = list.length + (list.length === 1 ? ' new course' : ' new courses');
+  document.querySelector('[data-list]').innerHTML = list.length ? '<div class="cards">' + list.map(function (r) {
+    var lg = logoFor(r.uni);
+    var details = r.fields.map(function (f) { return '<div class="field-block"><b>' + E(f.label) + '</b>' + f.paras.map(function (p) { return '<p>' + E(p) + '</p>'; }).join('') + (f.hasBullets ? '<ul>' + f.bullets.map(function (b) { return '<li>' + E(b) + '</li>'; }).join('') + '</ul>' : '') + '</div>'; }).join('');
+    return '<article class="sch"><div class="sch__head"><div class="logo">' + (lg ? '<img src="' + E(lg) + '" alt="" loading="lazy" onerror="this.parentNode.textContent=\'' + E(initialsFor(r.uni)) + '\'">' : E(initialsFor(r.uni))) + '</div>' +
+      '<div><h3>' + E(r.name) + '</h3><div class="muted" style="font-size:var(--fs-sm)">' + E(r.uni) + (r.type ? ' · ' + E(r.type) : '') + '</div></div></div>' +
+      (r.intake ? '<div class="row"><span class="tag">First intake: ' + E(r.intake) + '</span></div>' : '') +
+      (r.about ? '<p class="desc" style="font-size:var(--fs-sm);color:var(--ink-2)">' + E(r.about) + '</p>' : '') +
+      (r.interests.length ? '<div class="mini">' + r.interests.map(function (x) { return '<span>' + E(x) + '</span>'; }).join('') + '</div>' : '') +
+      (details ? '<div class="qa t-acc" data-open="false"><button class="qa__q" type="button"><span>More about this course</span></button><div class="t-acc-panel"><div class="t-acc-panel-inner"><div class="qa__a" style="display:grid;gap:12px">' + details + '</div></div></div></div>' : '') +
+      (r.link ? '<div class="row"><a class="btn btn--ghost" href="' + E(r.link) + '" target="_blank" rel="noopener">Course page' + I('arrow-up-right') + '</a></div>' : '') + '</article>';
+  }).join('') + '</div>' : '<div class="empty">' + (records.length ? 'No new courses match. Try another university or interest.' : 'Loading new courses…') + '</div>';
+  ECG.initAccordions(document.querySelector('[data-list]'));
+}
+function start() {
+  render();
+  var s = ECG.sheet(SHEET_URL);
+  var toText = function (d) { return [d.head].concat(d.rows).map(function (r) { return r.map(function (c) { return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(','); }).join('\n'); };
+  if (s.cached) apply(toText(s.cached));
+  s.fresh.then(function (d) { apply(toText(d)); }).catch(function () { if (!records.length) document.querySelector('[data-list]').innerHTML = '<div class="empty">The course list didn’t load just now. Refresh the page in a moment.</div>'; });
+  document.querySelector('[data-q]').addEventListener('input', function (e) { q = e.target.value.trim(); render(); });
+  document.querySelector('main').addEventListener('click', function (e) {
+    var a = e.target.closest('[data-uni]'); if (a) { uniF = a.getAttribute('data-uni'); render(); }
+    var b = e.target.closest('[data-int]'); if (b) { intF = b.getAttribute('data-int'); render(); }
+  });
+}
+if (window.ECG) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body>
+</html>

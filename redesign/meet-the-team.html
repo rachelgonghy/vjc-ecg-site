@@ -94,7 +94,7 @@ function card(p) {
 }
 function render() {
   document.querySelector('[data-leads]').innerHTML = teams.leads.map(function (p) {
-    return '<div class="lead">' + pic(p) + '<div><div class="person__name">' + E(p.name) + '</div><div class="person__role">' + E(p.role) + '</div>' + (p.email ? '<a class="person__mail" href="mailto:' + E(p.email) + '">' + I('mail') + 'Email</a>' : '') + '</div></div>';
+    return '<div class="leadcard">' + pic(p) + '<div><div class="person__name">' + E(p.name) + '</div><div class="person__role">' + E(p.role) + '</div>' + (p.email ? '<a class="person__mail" href="mailto:' + E(p.email) + '">' + I('mail') + 'Email</a>' : '') + '</div></div>';
   }).join('');
   var list = (tab === 0 ? teams.ecg : teams.td).filter(function (p) { return !/rachel gong/i.test(p.name); });
   var s = q.trim().toLowerCase();

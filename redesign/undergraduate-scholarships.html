@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Undergraduate Scholarships · ECG @ VJC</title>
+<meta name="description" content="Scholarships for your university studies, sorted by closing date, with how VJC can help you apply.">
+<meta name="theme-color" content="#8C151B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,600..800,0..100,0..1;1,9..144,600..800,0..100,0..1&display=swap">
+<link rel="stylesheet" href="assets/ecg.css">
+<script src="assets/ecg.js" defer></script>
+</head>
+<body data-page="undergraduate-scholarships">
+<main id="main">
+  <header class="phero phero--photo">
+    <div class="wrap phero__in t-stagger">
+      <div data-crumbs class="t-stagger-line" style="display:grid;gap:14px"></div>
+      <h1 class="t-stagger-line t-stagger-line--2">Undergraduate scholarships</h1>
+      <p class="lead t-stagger-line t-stagger-line--3">Scholarships for your university studies, sorted by closing date, with how VJC can help you apply. Need help preparing? Book a consultation with Ms Rachel Gong.</p>
+      <div class="phero__actions t-stagger-line t-stagger-line--4"><a class="btn btn--gold" href="https://for.edu.sg/vjcecgcappointment"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-calendar-check"/></svg>Book a consultation</a><a class="btn btn--ghost" href="interview-processes.html"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-mic"/></svg>Interview tips</a></div><figure class="phero__pic"><img src="assets/img/psc-ceremony.webp" alt="Victorians on stage at the PSC Scholarships award ceremony" width="1000" height="688" decoding="async" fetchpriority="high"></figure>
+    </div>
+  </header>
+  <div class="page">
+    <div class="wrap stack">
+      <section class="block" aria-label="Search and filter">
+        <div class="filterbar">
+          <div class="searchfield"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-search"/></svg><input class="input" type="search" placeholder="Search, e.g. PSC, engineering, Japan" aria-label="Search scholarships" data-q></div>
+          <div class="filters" data-cats role="group" aria-label="Level or type"></div>
+          <div class="filters" data-regions role="group" aria-label="Region"></div>
+          <span class="syncnote" data-count aria-live="polite">Loading scholarships…</span>
+        </div>
+      </section>
+      <div data-list aria-live="polite"><div class="empty">Loading scholarships…</div></div>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+/* ---- Sheet link and helpers carried over from the previous version (logos now in assets/img/logos) ---- */
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR2WN4ln-kG6AooDoFj9IzkLAroc7fsIN4iy8V_xaiugr_v5Ja5QDNrWHpXgXh0J1rC-GMcbN_dml-6/pub?gid=0&single=true&output=csv';
+
+function parseCSV(text) {
+  const rows = []; let row = []; let cur = ''; let q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) {
+      if (ch === '"' && text[i + 1] === '"') { cur += '"'; i++; }
+      else if (ch === '"') q = false;
+      else cur += ch;
+    } else if (ch === '"') q = true;
+    else if (ch === ',') { row.push(cur); cur = ''; }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && text[i + 1] === '\n') i++;
+      row.push(cur); rows.push(row); row = []; cur = '';
+    } else cur += ch;
+  }
+  if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+  return rows.filter(r => r.some(c => c.trim() !== ''));
+}
+
+function findCol(headers, patterns) {
+  for (const p of patterns) {
+    const i = headers.findIndex(h => p.test(h));
+    if (i >= 0) return i;
+  }
+  return -1;
+}
+
+const ECG_APPOINTMENT_URL = 'https://for.edu.sg/vjcecgcappointment';
+const URL_RE = /(https?:\/\/[^\s,;]+|www\.[^\s,;]+)/gi;
+
+const STAFF = [
+  { re: /^(.*?)((?:Mr\.?\s*)?Lionel\s+Loh)(.*)$/i, email: 'loh.han.loong@vjc.edu.sg' },
+  { re: /^(.*?)((?:Mr\.?\s*)?Caleb\s+Ho)(.*)$/i, email: 'ho.tianyu.basil.caleb@vjc.edu.sg' },
+  { re: /^(.*?)((?:Mrs\.?\s*)?Jean\s+Chong)(.*)$/i, email: 'tan.yenjun@vjc.edu.sg' },
+];
+
+function toField(label, value) {
+  const raw = value.split(/\n|;\s*(?=\S)|•/).map(x => x.trim()).filter(Boolean)
+    .reduce((acc, x) => { if (acc.length && /^[\w.+-]+@[\w-]+\.[\w.]+$/.test(x)) acc[acc.length - 1] += ' ' + x; else acc.push(x); return acc; }, []);
+  const lines = raw.map(line => {
+    const clean = line.replace(/^[-•·–]\s*/, '').replace(/\s*↗\s*/g, ' ').trim();
+    const bk = clean.match(/^(.*?)\bbook a consultation\b(.*)$/i);
+    if (bk && !clean.match(URL_RE)) return { text: bk[1].trim(), hasLink: true, href: ECG_APPOINTMENT_URL, linkText: 'Book a consultation', arrow: ' ↗', after: bk[2].replace(/^\s+/, ' '), hasDot: true };
+    for (const s of STAFF) {
+      const em = clean.match(s.re);
+      if (em) {
+        const esc = s.email.replace(/[.]/g, '\\.');
+        const after = em[3].replace(new RegExp('\\s*[\\(\\[]?\\s*(?:at|via|:)?\\s*' + esc + '\\s*[\\)\\]]?', 'i'), '').replace(/\s*\(\s*\)/, '');
+        return { arrow: '', text: em[1], hasLink: true, href: 'mailto:' + s.email, linkText: em[2], after };
+      }
+    }
+    if (/^book a consultation with ECG Counsellor/i.test(clean)) return { arrow: ' ↗', text: '', hasLink: true, href: ECG_APPOINTMENT_URL, linkText: 'Book a consultation', after: ' with ECG Counsellor Ms. Rachel Gong.' };
+    const mail = clean.match(/^(.*?)([\w.+-]+@[\w-]+\.[\w.]*\w)(.*)$/);
+    if (mail) return { arrow: '', text: mail[1], hasLink: true, href: 'mailto:' + mail[2], linkText: mail[2], after: mail[3] };
+    const m = clean.match(URL_RE);
+    if (!m) return { arrow: '', text: clean, hasLink: false, href: '', linkText: '', after: '' };
+    let href = m[0].replace(/[).,]+$/, '');
+    if (!/^https?:\/\//i.test(href)) href = 'https://' + href;
+    if (/counsell|consultation|appointment|calendar\.app\.google|calendar\.google/i.test(clean)) href = ECG_APPOINTMENT_URL;
+    let text = clean.replace(URL_RE, '').replace(/\s*(here|at|via)?\s*[:\-–|()\[\]]*\s*$/i, '').trim();
+    let linkText = 'Learn more';
+    if (/counsell|consultation|appointment/i.test(text)) {
+      return { arrow: ' ↗', text: '', hasLink: true, href: ECG_APPOINTMENT_URL, linkText: 'Book a consultation', after: ' with ECG Counsellor Ms. Rachel Gong.' };
+    }
+    if (text && text.length <= 40) { linkText = text; text = ''; }
+    return { arrow: ' ↗', text, hasLink: true, href, linkText, after: '' };
+  });
+  lines.forEach(l => { const t = (l.text || l.linkText || '').trim(); l.hasDot = !/^\*/.test(t) && !/^\d+[\).]\s/.test(t) && !/:\s*$/.test(t); });
+  lines.forEach(ln => { if (/^(all psc scholarships \(except medicine or dentistry\)|depends on individual organisations|but broadly speaking|you'll need to submit documents such as a personal statement|the final selection will require applicants to attend a personal interview)/i.test((ln.text || '').trim())) ln.hasDot = false; });
+  lines.forEach((ln, i) => { const prev = lines[i - 1]; const pt = prev && !prev.hasLink ? (prev.text || '').trim() : ''; if (pt && pt.length <= 40 && !/[.:;,!?]$/.test(pt) && !/[:)]/.test(pt.replace(/\(if applicable\)$/i, '')) && prev.hasDot !== false && (ln.text || '').length > 40) { ln.hasDot = false; if (!prev.bold) { prev.bold = prev.text; prev.text = ''; } } });
+  lines.forEach(ln => { const m = (ln.text || '').match(/^(.*?scholarship providers:|you may receive the following interview outcomes.*?:|step\s*\d+\s*:|round\s*\d+\s*:)\s*/i); if (m) { ln.bold = m[1] + ' '; ln.text = ln.text.slice(m[0].length); } });
+  lines.forEach(ln => {
+    const strip = s => (s || '').replace(/\*\*/g, '');
+    ln.segs = String(ln.text || '').split('**').map((t, i) => ({ t, w: i % 2 ? 600 : 'inherit', c: i % 2 ? '#241A15' : 'inherit' })).filter(s => s.t);
+    ln.bold = strip(ln.bold); ln.after = strip(ln.after); ln.linkText = strip(ln.linkText); ln.text = strip(ln.text);
+  });
+  const isBulleted = lines.length > 1;
+  return { label, lines, isBulleted, isPlain: !isBulleted };
+}
+
+const MONTHS = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11 };
+function parseDeadline(s) {
+  if (!s) return null;
+  const mon = w => MONTHS[(w || '').slice(0, 3).toLowerCase()];
+  const re = /(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]{3,})\.?,?\s+(\d{4})|([A-Za-z]{3,})\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})|(\d{1,2})\/(\d{1,2})\/(\d{4})/g;
+  let last = null, m;
+  while ((m = re.exec(s))) {
+    let t = null;
+    if (m[1] && mon(m[2]) !== undefined) t = new Date(+m[3], mon(m[2]), +m[1], 23, 59, 59).getTime();
+    else if (m[4] && mon(m[4]) !== undefined) t = new Date(+m[6], mon(m[4]), +m[5], 23, 59, 59).getTime();
+    else if (m[7]) t = new Date(+m[9], +m[8] - 1, +m[7], 23, 59, 59).getTime();
+    if (t !== null && (last === null || t > last)) last = t;
+  }
+  return last;
+}
+
+const LOGO_DOMAINS = [
+  [/engineering and tech|\bETPS?\b/i, 'moe.gov.sg'],
+  [/VJC Scholarship|Lee Phui Mun/i, 'victoriajc.moe.edu.sg'],
+  [/\bMSF\b|social and family/i, 'msf.gov.sg'],
+  [/\bPSC\b|public service commission/i, 'psc.gov.sg'],
+  [/a\*?star|agency for science/i, 'a-star.edu.sg'],
+  [/\bDSTA\b|defence science/i, 'dsta.gov.sg'],
+  [/\bSAF\b|\bMINDEF\b|armed forces|defence/i, 'mindef.gov.sg'],
+  [/\bMHA\b|home affairs|police|\bSPF\b|\bSCDF\b/i, 'mha.gov.sg'],
+  [/\bMFA\b|foreign affairs|foreign service/i, 'mfa.gov.sg'],
+  [/\bEDB\b|economic development board/i, 'edb.gov.sg'],
+  [/\bMOHH\b|allied health|healthcare|medicine/i, 'mohh.com.sg'],
+  [/\bMSF\b|social and family/i, 'msf.gov.sg'],
+  [/\bCSIT\b/i, 'csit.gov.sg'],
+  [/govtech|\bGovTech\b/i, 'tech.gov.sg'],
+  [/\bIMDA\b/i, 'imda.gov.sg'],
+  [/\bMAS\b|monetary authority/i, 'mas.gov.sg'],
+  [/\bLTA\b|land transport/i, 'lta.gov.sg'],
+  [/\bURA\b/i, 'ura.gov.sg'],
+  [/\bHDB\b/i, 'hdb.gov.sg'],
+  [/\bPUB\b/i, 'pub.gov.sg'],
+  [/\bNEA\b/i, 'nea.gov.sg'],
+  [/\bCAAS\b|civil aviation/i, 'caas.gov.sg'],
+  [/jardine/i, 'jardines.com'],
+  [/temasek/i, 'temasek.com.sg'],
+  [/\bGIC\b/i, 'gic.com.sg'],
+  [/\bNUS\b|national university of singapore/i, 'nus.edu.sg'],
+  [/\bNTU\b|nanyang technological/i, 'ntu.edu.sg'],
+  [/\bSMU\b/i, 'smu.edu.sg'],
+  [/\bSUTD\b/i, 'sutd.edu.sg'],
+  [/hong kong|\bHKU\b/i, 'hku.hk'],
+  [/\bMOE\b|ministry of education|teaching|humanities scholarship|\bHSP\b|language elective|\bLES\b|regional studies|\bRSP\b|pre-?u scholarship|jc scholarship|book prize|lee kuan yew|\bLKY\b/i, 'moe.gov.sg'],
+];
+const LOGO_SKIP = /brightsparks|google\.|forms\.gle|padlet|vjc\.|for\.edu\.sg|bit\.ly|tinyurl/i;
+const LOCAL_LOGOS = [[/\bMSF\b|social and family/i, 'assets/img/logos/cf982ea332.png'], [/\bNUS\b|national university of singapore/i, 'assets/img/logos/3173a593e4.png'], [/\bDSTA\b|defence science/i, 'assets/img/logos/b0ee9a2722.png'], [/\bMINDEF\b|ministry of defence|defence merit/i, 'assets/img/logos/69434abc7c.png'], [/\bSAF\b|armed forces|young leader/i, 'assets/img/logos/cfb6b8c4f0.png'], [/VJC Scholarship|Lee Phui Mun/i, 'assets/img/logos/c2df1c0749.png'], [/mext|monbukagakusho|japanese government|emb-japan/i, 'assets/img/logos/f121817c6d.png'], [/brightsparks/i, 'assets/img/logos/28599a2dc9.png']];
+function logoFor(name, link) {
+  name = name || '';
+  const local = LOCAL_LOGOS.find(([re]) => re.test(name)) || LOCAL_LOGOS.find(([re]) => re.test(link || ''));
+  const hit = LOGO_DOMAINS.find(([re]) => re.test(name));
+  let domain = hit ? hit[1] : '';
+  if (!hit && link) {
+    try { const h = new URL(/^https?:/i.test(link) ? link : 'https://' + link).hostname.replace(/^www\./, ''); if (!LOGO_SKIP.test(h)) domain = h; } catch (e) {}
+  }
+  const acr = /\bVJC\b/.test(name) ? 'VJC' : (name.match(/\(([A-Z*&]{2,6})\)/) || [])[1];
+  const initials = acr || name.replace(/[^A-Za-z\s]/g, ' ').split(/\s+/).filter(w => w && /[A-Z]/.test(w[0]) && !/^(The|Of|And|For|In|On)$/.test(w)).slice(0, 3).map(w => w[0]).join('') || '•';
+  return {
+    initials: initials.slice(0, 4),
+    hasLogo: !!(local || domain),
+    logoSrc: local ? local[1] : (domain ? 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=128' : ''),
+    onLogoError: e => { e.currentTarget.style.display = 'none'; },
+    onLogoLoad: e => { const i = e.currentTarget, w = i.naturalWidth; if (w < 32) i.style.display = 'none'; else if (w < 64) i.style.padding = Math.max(7, (44 - w) / 2) + 'px'; }
+  };
+}
+
+
+var E = function (s) { return ECG.esc(s); }, I = function (n) { return ECG.icon(n); };
+var records = [], q = '', cat = 'All', region = 'All', open = {}, linkLabel = 'Find out more';
+var DEADLINES = typeof parseDeadline === 'function';
+function apply(text) {
+  var rows = parseCSV(text); if (rows.length < 2) { records = []; return render(); }
+  var raw = rows[0].map(function (h) { return h.trim().replace(/^If you need help preparing for the scholarship application$/i, 'If you need help preparing for scholarship applications'); });
+  var lower = raw.map(function (h) { return h.toLowerCase(); });
+  var ti = findCol(lower, [/^scholarship/, /scholarship name/, /^name$/, /title/, /organisation|organization|agency|provider/]); if (ti < 0) ti = 0;
+  var li = findCol(lower, [/link/, /url/, /website/]), ci = findCol(lower, [/application target/, /target/, /category/, /^type$/, /sector/, /field/]);
+  var ri = findCol(lower, [/^region$/]), yi = findCol(lower, [/admissions? year/, /^year$/]), di = findCol(lower, [/deadline/, /closing/]);
+  if (li >= 0 && raw[li]) linkLabel = raw[li];
+  records = rows.slice(1).map(function (r) {
+    var cell = function (i) { return i >= 0 && r[i] ? r[i].trim() : ''; };
+    var title = cell(ti), link = cell(li); if (link && !/^https?:\/\//i.test(link)) link = 'https://' + link;
+    var fields = raw.map(function (label, i) { return { label: label, value: cell(i), i: i }; })
+      .filter(function (f) { return f.i !== ti && f.i !== li && f.i !== ci && f.i !== ri && f.i !== yi && f.value && f.value !== '-' && f.label && !/schools?\s+eligible/i.test(f.label) && !/testimonial/i.test(f.label); })
+      .map(function (f) { return toField(f.label, f.value); });
+    var split = function (s, re) { return s.split(re).map(function (x) { return x.trim(); }).filter(Boolean); };
+    return { title: title, link: link, cats: split(cell(ci), /\s*(?:,|\/|&|\band\b)\s*/i), regions: split(cell(ri), /[;,/&]|\band\b/i), year: cell(yi),
+      deadlineAt: DEADLINES && di >= 0 ? parseDeadline(cell(di)) : null, deadline: cell(di), fields: fields, search: r.join(' ').toLowerCase() };
+  }).filter(function (x) { return x.title; });
+  render();
+}
+function fieldHtml(f) {
+  var line = function (l) { return E(l.text) + (l.hasLink ? '<a href="' + E(l.href) + '" target="_blank" rel="noopener">' + E(l.linkText) + '</a>' : '') + E(l.after || ''); };
+  return '<div class="field-block"><b>' + E(f.label) + '</b>' + (f.isBulleted ? '<ul>' + f.lines.map(function (l) { return '<li>' + line(l) + '</li>'; }).join('') + '</ul>' : '<p>' + f.lines.map(line).join(' ') + '</p>') + '</div>';
+}
+function chips(list, cur, key, all) { return [all].concat(list).map(function (v) { var on = (v === all ? 'All' : v) === cur; return '<button type="button" class="chip' + (on ? ' is-active' : '') + '" aria-pressed="' + on + '" data-' + key + '="' + E(v === all ? 'All' : v) + '">' + E(v) + '</button>'; }).join(''); }
+function render() {
+  var cats = Array.from(new Set([].concat.apply([], records.map(function (r) { return r.cats; })))).sort();
+  var regs = Array.from(new Set([].concat.apply([], records.map(function (r) { return r.regions; })))).sort();
+  document.querySelector('[data-cats]').innerHTML = cats.length ? chips(cats, cat, 'cat', 'All') : '';
+  var rw = document.querySelector('[data-regions]'); if (rw) rw.innerHTML = regs.length ? chips(regs, region, 'region', 'All regions') : '';
+  var s = q.toLowerCase(), now = Date.now();
+  var closed = function (r) { return r.deadlineAt != null && r.deadlineAt < now; };
+  var list = records.filter(function (r) { return (cat === 'All' || r.cats.indexOf(cat) > -1) && (region === 'All' || r.regions.indexOf(region) > -1) && (!s || r.search.indexOf(s) > -1); });
+  list = list.filter(function (r) { return !closed(r); }).sort(function (a, b) { return (a.deadlineAt || 9e15) - (b.deadlineAt || 9e15); }).concat(list.filter(closed));
+  document.querySelector('[data-count]').textContent = list.length + (list.length === 1 ? ' scholarship' : ' scholarships');
+  document.querySelector('[data-list]').innerHTML = list.length ? '<div class="cards">' + list.map(function (r, n) {
+    var lg = logoFor(r.title, r.link), isOpen = !!open[r.title], c = closed(r);
+    var days = r.deadlineAt != null ? Math.ceil((r.deadlineAt - now) / 864e5) : null;
+    var badge = c ? '<span class="tag tag--maroon">Closed</span>' : days != null && days <= 21 ? '<span class="tag tag--soon">Closes in ' + days + ' day' + (days === 1 ? '' : 's') + '</span>' : days != null ? '<span class="tag tag--ok">Open</span>' : '';
+    var tags = r.regions.concat(r.cats).map(function (t) { return '<span>' + E(t) + '</span>'; }).join('') + (r.year ? '<span>For ' + E(r.year) + ' admission</span>' : '');
+    return '<article class="sch' + (c ? ' is-closed' : '') + '"><div class="sch__head"><div class="logo">' + (lg.hasLogo ? '<img src="' + E(lg.logoSrc) + '" alt="" loading="lazy" onerror="this.parentNode.textContent=\'' + E(lg.initials) + '\'">' : E(lg.initials)) + '</div>' +
+      '<div><h3>' + E(r.title) + '</h3>' + (badge ? '<div class="row" style="margin-top:4px">' + badge + '</div>' : '') + '</div></div>' +
+      (tags ? '<div class="mini">' + tags + '</div>' : '') +
+      (r.fields.length ? (isOpen ? r.fields : r.fields.slice(0, 1)).map(fieldHtml).join('') : '') +
+      '<div class="row">' + (r.link ? '<a class="btn btn--gold" href="' + E(r.link) + '" target="_blank" rel="noopener">' + E(linkLabel) + I('arrow-up-right') + '</a>' : '') +
+      (r.fields.length > 1 ? '<button class="btn btn--ghost" type="button" data-toggle="' + E(r.title) + '" aria-expanded="' + isOpen + '">' + (isOpen ? 'Show less' : 'View details') + '</button>' : '') + '</div></article>';
+  }).join('') + '</div>' : '<div class="empty">No scholarships match. Try another search or level.</div>';
+}
+function start() {
+  var s = ECG.sheet(SHEET_URL);
+  var toText = function (d) { return [d.head].concat(d.rows).map(function (r) { return r.map(function (c) { return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(','); }).join('\n'); };
+  if (s.cached) apply(toText(s.cached));
+  s.fresh.then(function (d) { apply(toText(d)); }).catch(function () { if (!records.length) document.querySelector('[data-list]').innerHTML = '<div class="empty">The scholarships didn’t load just now. Refresh the page in a moment.</div>'; });
+  document.querySelector('[data-q]').addEventListener('input', function (e) { q = e.target.value.trim(); render(); });
+  document.querySelector('main').addEventListener('click', function (e) {
+    var a = e.target.closest('[data-cat]'); if (a) { cat = a.getAttribute('data-cat'); render(); }
+    var b = e.target.closest('[data-region]'); if (b) { region = b.getAttribute('data-region'); render(); }
+    var t = e.target.closest('[data-toggle]'); if (t) { var k = t.getAttribute('data-toggle'); open[k] = !open[k]; render(); }
+  });
+}
+if (window.ECG) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body>
+</html>
