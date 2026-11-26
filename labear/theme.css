@@ -70,6 +70,18 @@ a[style*="border-radius: 999px"]:active,button[style*="border-radius: 999px"]:ac
 [style*="border-top: 1px solid rgb(240, 230, 208)"],[style*="border-top: 1px solid rgb(231, 219, 190)"],[style*="border-top:1px solid #E7DBBE"]{border-top:2px dashed #D9C6A8!important}
 [style*="border-bottom: 1px solid rgb(231, 219, 190)"],[style*="border-bottom:1px solid #E7DBBE"]{border-bottom:2px dashed #D9C6A8!important}
 
+/* Breadcrumbs: each step is a small sticker pill, the current page is gold, "/" becomes a maroon arrow */
+nav[aria-label="Breadcrumb"]{gap:8px!important;align-items:center!important;margin-bottom:8px}
+nav[aria-label="Breadcrumb"] a{display:inline-flex!important;align-items:center;min-height:32px;padding:4px 12px!important;margin:0!important;
+  background:#fff;border:2px solid var(--lb-ink);border-radius:999px;box-shadow:2px 2px 0 var(--lb-ink);font-weight:700;color:var(--lb-ink)!important;
+  transition:translate .12s ease-out,box-shadow .12s ease-out,background-color .12s ease-out}
+@media (hover:hover){nav[aria-label="Breadcrumb"] a:hover{translate:0 -2px;background:var(--lb-g-soft);opacity:1}}
+nav[aria-label="Breadcrumb"] a:active{translate:2px 2px;box-shadow:0 0 0 var(--lb-ink)}
+nav[aria-label="Breadcrumb"]>span[style*="font-weight"]{display:inline-flex;align-items:center;min-height:32px;padding:4px 12px;
+  background:var(--lb-g);border:2px solid var(--lb-ink);border-radius:999px;box-shadow:2px 2px 0 var(--lb-ink);font-weight:800!important;color:var(--lb-ink)!important}
+nav[aria-label="Breadcrumb"]>span[style*="rgb(122, 106, 94)"],nav[aria-label="Breadcrumb"]>span[style*="#7A6A5E"]{font-size:0!important;line-height:0}
+nav[aria-label="Breadcrumb"]>span[style*="rgb(122, 106, 94)"]::before,nav[aria-label="Breadcrumb"]>span[style*="#7A6A5E"]::before{content:"\2192";font-size:16px;line-height:1;font-weight:900;color:var(--lb-m)}
+
 /* Cards ease in as they scroll into view (theme.js adds lb-reveal). Short, and never blocks reading. */
 .lb-reveal{animation:lb-rise .32s ease-out both}
 @keyframes lb-rise{from{opacity:.001;translate:0 10px}to{opacity:1;translate:0 0}}
