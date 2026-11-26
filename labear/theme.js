@@ -1,37 +1,48 @@
-/* La Bear theme: adds the six-bear crew under the welcome text on the homepage only.
-   Other pages just get the look from theme.css. */
+/* La Bear theme script.
+   Every page: cards ease in as they scroll into view (IntersectionObserver: no scroll listeners, no layout work).
+   Homepage only: marks <html class="lb-home"> for the full look and adds the six-bear crew under the welcome text.
+   Nothing is hidden before it animates, so content never waits on this script. */
 (function () {
   if (window.__lbTheme) return; window.__lbTheme = 1;
-  var BEARS = { S: ['#DAE7C6', 'Supper Kaki Bear'], I: ['#D5DFF3', '47 Tabs Bear'], A: ['#FBD0D0', 'Class Shirt Bear'],
-    C: ['#D7ECD7', 'Group Chat Admin Bear'], E: ['#FCDCCE', 'Pasar Malam Bear'], R: ['#F9E4C3', 'No Manual Bear'] };
-  var ORDER = ['S', 'I', 'A', 'C', 'E', 'R'];
-  function bear(t, cls) {
-    var d = document.createElement('span'); d.className = 'lb-bear ' + (cls || '');
-    d.style.background = BEARS[t][0];
-    var i = document.createElement('img'); i.src = 'labear/art/' + t + '.webp'; i.alt = BEARS[t][1]; i.loading = 'lazy';
-    d.appendChild(i); return d;
-  }
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
   var home = page === '' || page === 'index.html' || page === 'home.html';
-  if (!home) return;
+  if (home) document.documentElement.classList.add('lb-home');
+
+  var BEARS = { S: ['#DAE7C6', 'Supper Kaki Bear'], I: ['#D5DFF3', '47 Tabs Bear'], A: ['#FBD0D0', 'Class Shirt Bear'],
+    C: ['#D7ECD7', 'Group Chat Admin Bear'], E: ['#FCDCCE', 'Pasar Malam Bear'], R: ['#F9E4C3', 'No Manual Bear'] };
+  function bear(t) {
+    var d = document.createElement('span'); d.className = 'lb-bear'; d.style.background = BEARS[t][0];
+    var i = document.createElement('img'); i.src = 'labear/art/' + t + '.webp'; i.alt = BEARS[t][1]; i.decoding = 'async';
+    d.appendChild(i); return d;
+  }
+
+  // Cards below the first screen ease in when they arrive. Cards already on screen are left alone.
+  var io = (!reduce && 'IntersectionObserver' in window) ? new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { e.target.classList.add('lb-reveal'); io.unobserve(e.target); }
+    });
+  }, { rootMargin: '0px 0px -40px 0px' }) : null;
+  var seen = typeof WeakSet === 'function' ? new WeakSet() : null;
+  function watchCards() {
+    if (!io || !seen) return;
+    var cards = document.querySelectorAll('[style*="display: grid"] > *');
+    for (var i = 0; i < cards.length; i++) {
+      var c = cards[i]; if (seen.has(c)) continue; seen.add(c);
+      if (c.getBoundingClientRect().top > innerHeight) io.observe(c);
+    }
+  }
+
   var tries = 0, iv = setInterval(function () {
     var h1 = document.querySelector('h1');
-    if (!h1 && tries > 15) { // some pages style their title without an <h1>: take the first big hand-lettered line
-      h1 = [].slice.call(document.querySelectorAll('div,h2,span')).filter(function (e) {
-        var c = getComputedStyle(e); return /Gaegu/.test(c.fontFamily) && parseFloat(c.fontSize) >= 28 && e.children.length === 0;
-      })[0] || null;
-    }
-    if (!h1) { if (++tries > 100) clearInterval(iv); return; }
+    tries++;
+    if (!h1 && tries < 60) return;
     clearInterval(iv);
-    if (document.querySelector('.lb-bear')) return;
-    if (home) {
+    watchCards(); setTimeout(watchCards, 1500); // pages that load their lists a little later
+    if (home && h1 && !document.querySelector('.lb-crew')) {
       var crew = document.createElement('div'); crew.className = 'lb-crew'; crew.setAttribute('aria-hidden', 'true');
-      ORDER.forEach(function (t) { crew.appendChild(bear(t)); });
+      ['S', 'I', 'A', 'C', 'E', 'R'].forEach(function (t) { crew.appendChild(bear(t)); });
       h1.parentNode.appendChild(crew);
-    } else {
-      var n = 0; for (var k = 0; k < page.length; k++) n = (n * 31 + page.charCodeAt(k)) >>> 0;
-      var b = bear(ORDER[n % 6], 'lb-peek'); b.setAttribute('aria-hidden', 'true');
-      h1.parentNode.insertBefore(b, h1);
     }
   }, 100);
 })();
