@@ -1,12 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Nunito:wght@500;600;700;800;900&display=swap');
 /* La Bear theme for the ECG site: the same sticker-book look on every page.
-   Dotted paper, thick ink outlines, hand-lettered headings (Gaegu), friendly text (Nunito), pastel icon tiles,
+   Dotted paper, thick ink outlines, hand-lettered headings (Gaegu), friendly text (Nunito), gold/maroon/black icon tiles,
    VJC maroon and gold kept. The six bears appear on the homepage only (theme.js).
    The pages use inline styles, so rules match them by their style values (both "#HEX" and the browser's "rgb()"
    form), and inner pages also use the site's design settings (CSS variables), which are retuned below.
    Motion: only transform/opacity (cheap for phones), nothing longer than ~0.4s, nothing hides content,
    and all of it is switched off for people who ask their device for reduced motion. */
-:root{--lb-ink:#2B1A10;--lb-paper:#FFF8EE;--lb-dot:#EADBC4;--lb-g:#F2C230}
+:root{--lb-ink:#2B1A10;--lb-paper:#FFF8EE;--lb-dot:#EADBC4;--lb-g:#F2C230;--lb-g-soft:#FFE68A;--lb-m:#8C151B}
 
 /* Paper */
 html body{background-color:var(--lb-paper)!important;background-image:radial-gradient(var(--lb-dot) 1.2px,transparent 1.4px)!important;background-size:22px 22px!important}
@@ -36,18 +36,24 @@ h1[style*="Source Serif"],h1[style*="var(--font-serif-display)"]{line-height:1.0
 [style*="box-shadow"],[style*="var(--shadow-sm)"]{transition:translate .18s ease-out,rotate .18s ease-out,box-shadow .18s ease-out}
 @media (hover:hover){
   [style*="display: grid"]>[style*="box-shadow"]:hover,[style*="display: grid"]>[style*="var(--shadow-sm)"]:hover,
-  a[style*="var(--radius-lg)"][style*="var(--shadow-sm)"]:hover{translate:0 -3px;rotate:0deg;box-shadow:6px 7px 0 var(--lb-ink)!important}}
+  a[style*="var(--radius-lg)"][style*="var(--shadow-sm)"]:hover{translate:0 -3px;rotate:0deg;box-shadow:6px 7px 0 var(--lb-m)!important}}
 
-/* Icon tiles and picture panels: pastel stickers, a different colour per card */
-[style*="background:#F4ECDA"],[style*="background: rgb(244, 236, 218)"]{border:2px solid var(--lb-ink)!important;border-radius:14px!important;box-shadow:2px 2px 0 var(--lb-ink)!important;background:#FFF3C4!important;transition:rotate .2s ease-out}
-[style*="display: grid"]>:nth-child(6n+2) [style*="background: rgb(244, 236, 218)"],[style*="display: grid"]>:nth-child(6n+2) [style*="background: var(--cream-100)"]{background:#DDEBFF!important}
-[style*="display: grid"]>:nth-child(6n+3) [style*="background: rgb(244, 236, 218)"],[style*="display: grid"]>:nth-child(6n+3) [style*="background: var(--cream-100)"]{background:#FFE0E6!important}
-[style*="display: grid"]>:nth-child(6n+4) [style*="background: rgb(244, 236, 218)"],[style*="display: grid"]>:nth-child(6n+4) [style*="background: var(--cream-100)"]{background:#DFF3E4!important}
-[style*="display: grid"]>:nth-child(6n+5) [style*="background: rgb(244, 236, 218)"],[style*="display: grid"]>:nth-child(6n+5) [style*="background: var(--cream-100)"]{background:#FFE8D6!important}
-[style*="display: grid"]>:nth-child(6n) [style*="background: rgb(244, 236, 218)"],[style*="display: grid"]>:nth-child(6n) [style*="background: var(--cream-100)"]{background:#EFE3FF!important}
-[style*="display: grid"]>:nth-child(6n+1) [style*="background: var(--cream-100)"]{background:#FFF3C4!important}
+/* Icon tiles and picture panels: VJC colours in turn (gold, maroon, black) */
+[style*="background:#F4ECDA"],[style*="background: rgb(244, 236, 218)"]{border:2px solid var(--lb-ink)!important;border-radius:14px!important;box-shadow:2px 2px 0 var(--lb-ink)!important;background:var(--lb-g)!important;transition:rotate .2s ease-out}
+[style*="background: rgb(244, 236, 218)"] svg{color:var(--lb-m)!important}
+/* side menus and other cream panels: light gold */
+[style*="background: var(--cream-100)"]{background:var(--lb-g-soft)!important}
+[style*="display: grid"]>:nth-child(3n+1) [style*="background: rgb(244, 236, 218)"],[style*="display: grid"]>:nth-child(3n+1) [style*="background: var(--cream-100)"]{background:var(--lb-g)!important}
+[style*="display: grid"]>:nth-child(3n+1) [style*="background: rgb(244, 236, 218)"] svg,[style*="display: grid"]>:nth-child(3n+1) [style*="background: var(--cream-100)"] svg{color:var(--lb-m)!important}
+[style*="display: grid"]>:nth-child(3n+2) [style*="background: rgb(244, 236, 218)"],[style*="display: grid"]>:nth-child(3n+2) [style*="background: var(--cream-100)"]{background:var(--lb-m)!important}
+[style*="display: grid"]>:nth-child(3n+2) [style*="background: rgb(244, 236, 218)"] svg,[style*="display: grid"]>:nth-child(3n+2) [style*="background: var(--cream-100)"] svg{color:var(--lb-g)!important}
+[style*="display: grid"]>:nth-child(3n) [style*="background: rgb(244, 236, 218)"],[style*="display: grid"]>:nth-child(3n) [style*="background: var(--cream-100)"]{background:var(--lb-ink)!important}
+[style*="display: grid"]>:nth-child(3n) [style*="background: rgb(244, 236, 218)"] svg,[style*="display: grid"]>:nth-child(3n) [style*="background: var(--cream-100)"] svg{color:var(--lb-g)!important}
 @media (hover:hover){[style*="display: grid"]>:hover [style*="background: rgb(244, 236, 218)"]{rotate:-6deg}}
-[style*="background:#FBEACB"],[style*="background: rgb(251, 234, 203)"]{border:2px dashed var(--lb-ink)!important;background:#FFF3C4!important}
+[style*="background:#FBEACB"],[style*="background: rgb(251, 234, 203)"]{border:2px dashed var(--lb-ink)!important;background:var(--lb-g-soft)!important}
+
+/* Page titles get a gold highlighter stroke; cards lift with a maroon shadow */
+h1{text-decoration:underline!important;text-decoration-color:var(--lb-g)!important;text-decoration-thickness:.3em!important;text-underline-offset:-.12em;text-decoration-skip-ink:none}
 
 /* Buttons and pills: chunky and pressable */
 [style*="border-radius:999px"][style*="background:#8C151B"],[style*="border-radius: 999px"][style*="background: rgb(140, 21, 27)"],
