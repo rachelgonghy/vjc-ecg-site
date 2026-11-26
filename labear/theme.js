@@ -1,5 +1,5 @@
-/* La Bear theme: adds the bears. Homepage: the six-bear crew under the welcome text.
-   Other pages: one bear sticker beside the page title (each page always gets the same bear). */
+/* La Bear theme: adds the six-bear crew under the welcome text on the homepage only.
+   Other pages just get the look from theme.css. */
 (function () {
   if (window.__lbTheme) return; window.__lbTheme = 1;
   var BEARS = { S: ['#DAE7C6', 'Supper Kaki Bear'], I: ['#D5DFF3', '47 Tabs Bear'], A: ['#FBD0D0', 'Class Shirt Bear'],
@@ -13,6 +13,7 @@
   }
   var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
   var home = page === '' || page === 'index.html' || page === 'home.html';
+  if (!home) return;
   var tries = 0, iv = setInterval(function () {
     var h1 = document.querySelector('h1');
     if (!h1 && tries > 15) { // some pages style their title without an <h1>: take the first big hand-lettered line
