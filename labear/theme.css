@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Nunito:wght@500;600;700;800;900&display=swap');
+/* La Bear theme for the ECG site: a sticker book. Dotted paper, thick ink outlines,
+   hand-lettered headings (Gaegu), friendly text (Nunito), VJC maroon and gold kept.
+   The pages use inline styles, so this file matches them by their style values. */
+:root{--lb-ink:#2B1A10;--lb-paper:#FFF8EE;--lb-dot:#EADBC4;--lb-m:#8C151B;--lb-g:#F2C230}
+html body{background-color:var(--lb-paper)!important;background-image:radial-gradient(var(--lb-dot) 1.2px,transparent 1.4px)!important;background-size:22px 22px!important}
+[style*="background:#FBF7EF"],
+[style*="background: rgb(251, 247, 239)"]{background-color:transparent!important}
+
+/* Type */
+[style*="Work Sans"]{font-family:Nunito,'Work Sans',system-ui,sans-serif!important}
+[style*="Source Serif"]{font-family:Gaegu,'Comic Sans MS',cursive!important;font-weight:700!important;font-style:normal!important;letter-spacing:0!important;font-size-adjust:.44;word-spacing:-.06em}
+h1[style*="Source Serif"]{line-height:1.02!important;text-wrap:balance}
+h2[style*="Source Serif"],
+h3[style*="Source Serif"]{line-height:1.08!important}
+
+/* Cards become stickers: ink outline, hard offset shadow */
+[style*="background:#FFFFFF"][style*="box-shadow"],
+[style*="background: rgb(255, 255, 255)"][style*="box-shadow"],
+[style*="background:#FFFFFF"][style*="border:1px solid #E7DBBE"][style*="border-radius:14px"],
+[style*="background: rgb(255, 255, 255)"][style*="border: 1px solid rgb(231, 219, 190)"][style*="border-radius: 14px"],
+[style*="background:#FFFFFF"][style*="border:1px solid #E7DBBE"][style*="border-radius:12px"],
+[style*="background: rgb(255, 255, 255)"][style*="border: 1px solid rgb(231, 219, 190)"][style*="border-radius: 12px"]{
+  border:2.5px solid var(--lb-ink)!important;box-shadow:4px 4px 0 var(--lb-ink)!important;border-radius:20px!important;
+  transition:transform .15s,box-shadow .15s}
+[style*="display:grid"]>[style*="background:#FFFFFF"][style*="box-shadow"]:nth-child(odd),
+[style*="display: grid"]>[style*="background: rgb(255, 255, 255)"][style*="box-shadow"]:nth-child(odd){transform:rotate(-.35deg)}
+[style*="display:grid"]>[style*="background:#FFFFFF"][style*="box-shadow"]:nth-child(even),
+[style*="display: grid"]>[style*="background: rgb(255, 255, 255)"][style*="box-shadow"]:nth-child(even){transform:rotate(.35deg)}
+@media (hover:hover){[style*="display:grid"]>[style*="background:#FFFFFF"][style*="box-shadow"]:hover{transform:translateY(-3px) rotate(0);box-shadow:6px 7px 0 var(--lb-ink)!important}}
+
+/* Icon tiles: pastel stickers, a different colour per card */
+[style*="background:#F4ECDA"],
+[style*="background: rgb(244, 236, 218)"]{border:2px solid var(--lb-ink)!important;border-radius:14px!important;box-shadow:2px 2px 0 var(--lb-ink)!important;background:#FFF3C4!important}
+[style*="display:grid"]>:nth-child(6n+2) [style*="background:#F4ECDA"],
+[style*="display: grid"]>:nth-child(6n+2) [style*="background: rgb(244, 236, 218)"]{background:#DDEBFF!important}
+[style*="display:grid"]>:nth-child(6n+3) [style*="background:#F4ECDA"],
+[style*="display: grid"]>:nth-child(6n+3) [style*="background: rgb(244, 236, 218)"]{background:#FFE0E6!important}
+[style*="display:grid"]>:nth-child(6n+4) [style*="background:#F4ECDA"],
+[style*="display: grid"]>:nth-child(6n+4) [style*="background: rgb(244, 236, 218)"]{background:#DFF3E4!important}
+[style*="display:grid"]>:nth-child(6n+5) [style*="background:#F4ECDA"],
+[style*="display: grid"]>:nth-child(6n+5) [style*="background: rgb(244, 236, 218)"]{background:#FFE8D6!important}
+[style*="display:grid"]>:nth-child(6n) [style*="background:#F4ECDA"],
+[style*="display: grid"]>:nth-child(6n) [style*="background: rgb(244, 236, 218)"]{background:#EFE3FF!important}
+[style*="background:#FBEACB"],
+[style*="background: rgb(251, 234, 203)"]{border:2px dashed var(--lb-ink)!important;background:#FFF3C4!important}
+
+/* Buttons and pills: chunky, pressable */
+[style*="border-radius:999px"][style*="background:#8C151B"],
+[style*="border-radius: 999px"][style*="background: rgb(140, 21, 27)"],
+[style*="border-radius:999px"][style*="background:#241A15"],
+[style*="border-radius: 999px"][style*="background: rgb(36, 26, 21)"],
+[style*="border-radius:999px"][style*="background:#D6A017"],
+[style*="border-radius: 999px"][style*="background: rgb(214, 160, 23)"],
+[style*="border-radius:999px"][style*="background:#FFFFFF"],
+[style*="border-radius: 999px"][style*="background: rgb(255, 255, 255)"],
+[style*="border-radius:999px"][style*="border:1px solid #8C151B"],
+[style*="border-radius: 999px"][style*="border: 1px solid rgb(140, 21, 27)"]{
+  border:2px solid var(--lb-ink)!important;box-shadow:2px 2px 0 var(--lb-ink)!important;font-weight:800!important}
+[style*="border-radius:999px"][style*="background:#D6A017"],
+[style*="border-radius: 999px"][style*="background: rgb(214, 160, 23)"]{background:var(--lb-g)!important}
+a[style*="border-radius:999px"]:active,
+a[style*="border-radius: 999px"]:active,
+button[style*="border-radius:999px"]:active,
+button[style*="border-radius: 999px"]:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--lb-ink)!important}
+
+/* Dividers: dashed trail lines */
+[style*="border-top:1px solid #E7DBBE"],
+[style*="border-top: 1px solid rgb(231, 219, 190)"]{border-top:2px dashed #D9C6A8!important}
+[style*="border-bottom:1px solid #E7DBBE"],
+[style*="border-bottom: 1px solid rgb(231, 219, 190)"]{border-bottom:2px dashed #D9C6A8!important}
+
+
+/* Inner pages use the site's design settings (CSS variables): retune them. */
+html:root{
+  --font-serif-display:Gaegu,'Comic Sans MS',cursive;
+  --font-sans-ui:Nunito,'Work Sans',-apple-system,'Segoe UI',sans-serif;
+  --color-bg:transparent;
+  --color-border:#2B1A10;
+  --radius-lg:20px;--radius-md:12px;
+  --shadow-xs:2px 2px 0 #2B1A10;--shadow-sm:4px 4px 0 #2B1A10;--shadow-md:5px 5px 0 #2B1A10;--shadow-lg:6px 7px 0 #2B1A10;
+  --tracking-tight:0;--text-h1:2.6rem;--text-h2:2rem;--text-h3:1.55rem;--text-h4:1.3rem;
+}
+[style*="var(--font-serif-display)"]{font-size-adjust:.44;font-weight:700!important;word-spacing:-.06em}
+[style*="border: 1px solid var(--color-border)"][style*="var(--radius-lg)"]{border-width:2.5px!important}
+[style*="border-radius: var(--radius-lg)"][style*="var(--shadow-sm)"]{transition:transform .15s,box-shadow .15s}
+@media (hover:hover){a[style*="border-radius: var(--radius-lg)"]:hover,[style*="border-radius: var(--radius-lg)"][style*="var(--shadow-sm)"]:hover{transform:translateY(-3px)}}
+
+/* Picture panels on inner-page cards: pastel per card */
+[style*="display: grid"]>:nth-child(6n+1) [style*="background: var(--cream-100)"]{background:#FFF3C4!important}
+[style*="display: grid"]>:nth-child(6n+2) [style*="background: var(--cream-100)"]{background:#DDEBFF!important}
+[style*="display: grid"]>:nth-child(6n+3) [style*="background: var(--cream-100)"]{background:#FFE0E6!important}
+[style*="display: grid"]>:nth-child(6n+4) [style*="background: var(--cream-100)"]{background:#DFF3E4!important}
+[style*="display: grid"]>:nth-child(6n+5) [style*="background: var(--cream-100)"]{background:#FFE8D6!important}
+[style*="display: grid"]>:nth-child(6n+6) [style*="background: var(--cream-100)"]{background:#EFE3FF!important}
+
+/* Bears added by theme.js */
+.lb-crew{display:flex;gap:12px;flex-wrap:wrap;margin:6px 0 0;align-items:flex-end}
+.lb-bear{display:block;border:2.5px solid var(--lb-ink);border-radius:18px;box-shadow:3px 3px 0 var(--lb-ink);overflow:hidden;animation:lb-bob 3.2s ease-in-out infinite}
+.lb-bear img{display:block;width:100%;height:auto}
+.lb-crew .lb-bear{width:clamp(64px,13vw,128px)}
+.lb-crew .lb-bear:nth-child(odd){transform:rotate(-3deg)}.lb-crew .lb-bear:nth-child(even){transform:rotate(3deg)}
+.lb-crew .lb-bear:nth-child(2){animation-delay:.4s}.lb-crew .lb-bear:nth-child(3){animation-delay:.8s}
+.lb-crew .lb-bear:nth-child(4){animation-delay:1.2s}.lb-crew .lb-bear:nth-child(5){animation-delay:1.6s}.lb-crew .lb-bear:nth-child(6){animation-delay:2s}
+.lb-peek{float:right;width:clamp(76px,14vw,132px);margin:0 0 8px 16px;transform:rotate(3deg)}
+@keyframes lb-bob{0%,100%{translate:0 0}50%{translate:0 -5px}}
+@media (prefers-reduced-motion:reduce){.lb-bear{animation:none}[style*="display:grid"]>*{transform:none!important}}
