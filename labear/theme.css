@@ -1,58 +1,72 @@
 @import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Nunito:wght@500;600;700;800;900&display=swap');
-/* La Bear theme for the ECG site.
-   Every page: dotted paper, chunky outlined buttons, a soft paper-cut shadow on cards, light motion.
-   Headings and text stay as designed.
-   Homepage only (html.lb-home, set by theme.js): the full sticker-book look and the six bears.
-   The pages use inline styles, so rules match them by their style values (both "#HEX" and the browser's "rgb()" form).
-   Motion: only transform/opacity (cheap for phones), nothing longer than ~0.3s, nothing hides content,
+/* La Bear theme for the ECG site: the same sticker-book look on every page.
+   Dotted paper, thick ink outlines, hand-lettered headings (Gaegu), friendly text (Nunito), pastel icon tiles,
+   VJC maroon and gold kept. The six bears appear on the homepage only (theme.js).
+   The pages use inline styles, so rules match them by their style values (both "#HEX" and the browser's "rgb()"
+   form), and inner pages also use the site's design settings (CSS variables), which are retuned below.
+   Motion: only transform/opacity (cheap for phones), nothing longer than ~0.4s, nothing hides content,
    and all of it is switched off for people who ask their device for reduced motion. */
-:root{--lb-ink:#2B1A10;--lb-paper:#FFF8EE;--lb-dot:#EADBC4;--lb-g:#F2C230;--lb-cut:#E2D3B5}
+:root{--lb-ink:#2B1A10;--lb-paper:#FFF8EE;--lb-dot:#EADBC4;--lb-g:#F2C230}
 
-/* ---------- Every page ---------- */
+/* Paper */
 html body{background-color:var(--lb-paper)!important;background-image:radial-gradient(var(--lb-dot) 1.2px,transparent 1.4px)!important;background-size:22px 22px!important}
 [style*="background:#FBF7EF"],[style*="background: rgb(251, 247, 239)"]{background-color:transparent!important}
-html:root{--color-bg:transparent;--shadow-sm:3px 3px 0 var(--lb-cut);--shadow-md:4px 4px 0 var(--lb-cut)}
 
-/* Buttons and pills: outlined and pressable */
+/* Design settings used by the inner pages */
+html:root{
+  --font-serif-display:Gaegu,'Comic Sans MS',cursive;
+  --font-sans-ui:Nunito,'Work Sans',-apple-system,'Segoe UI',sans-serif;
+  --color-bg:transparent;--color-border:#2B1A10;
+  --radius-lg:20px;--radius-md:12px;
+  --shadow-xs:2px 2px 0 #2B1A10;--shadow-sm:4px 4px 0 #2B1A10;--shadow-md:5px 5px 0 #2B1A10;--shadow-lg:6px 7px 0 #2B1A10;
+  --tracking-tight:0;--text-h1:2.6rem;--text-h2:2rem;--text-h3:1.55rem;--text-h4:1.3rem;
+}
+
+/* Type */
+[style*="Work Sans"]{font-family:Nunito,'Work Sans',system-ui,sans-serif!important}
+[style*="Source Serif"],[style*="var(--font-serif-display)"]{font-family:Gaegu,'Comic Sans MS',cursive!important;font-weight:700!important;font-style:normal!important;letter-spacing:0!important;font-size-adjust:.44;word-spacing:-.06em}
+h1[style*="Source Serif"],h1[style*="var(--font-serif-display)"]{line-height:1.02!important;text-wrap:balance}
+
+/* Cards become stickers */
+[style*="background:#FFFFFF"][style*="box-shadow"],[style*="background: rgb(255, 255, 255)"][style*="box-shadow"]{
+  border:2.5px solid var(--lb-ink)!important;box-shadow:4px 4px 0 var(--lb-ink)!important;border-radius:20px!important}
+[style*="border: 1px solid var(--color-border)"][style*="var(--radius-lg)"]{border-width:2.5px!important}
+[style*="display: grid"]>[style*="box-shadow"]:nth-child(odd){rotate:-.35deg}
+[style*="display: grid"]>[style*="box-shadow"]:nth-child(even){rotate:.35deg}
+[style*="box-shadow"],[style*="var(--shadow-sm)"]{transition:translate .18s ease-out,rotate .18s ease-out,box-shadow .18s ease-out}
+@media (hover:hover){
+  [style*="display: grid"]>[style*="box-shadow"]:hover,[style*="display: grid"]>[style*="var(--shadow-sm)"]:hover,
+  a[style*="var(--radius-lg)"][style*="var(--shadow-sm)"]:hover{translate:0 -3px;rotate:0deg;box-shadow:6px 7px 0 var(--lb-ink)!important}}
+
+/* Icon tiles and picture panels: pastel stickers, a different colour per card */
+[style*="background:#F4ECDA"],[style*="background: rgb(244, 236, 218)"]{border:2px solid var(--lb-ink)!important;border-radius:14px!important;box-shadow:2px 2px 0 var(--lb-ink)!important;background:#FFF3C4!important;transition:rotate .2s ease-out}
+[style*="display: grid"]>:nth-child(6n+2) [style*="background: rgb(244, 236, 218)"],[style*="display: grid"]>:nth-child(6n+2) [style*="background: var(--cream-100)"]{background:#DDEBFF!important}
+[style*="display: grid"]>:nth-child(6n+3) [style*="background: rgb(244, 236, 218)"],[style*="display: grid"]>:nth-child(6n+3) [style*="background: var(--cream-100)"]{background:#FFE0E6!important}
+[style*="display: grid"]>:nth-child(6n+4) [style*="background: rgb(244, 236, 218)"],[style*="display: grid"]>:nth-child(6n+4) [style*="background: var(--cream-100)"]{background:#DFF3E4!important}
+[style*="display: grid"]>:nth-child(6n+5) [style*="background: rgb(244, 236, 218)"],[style*="display: grid"]>:nth-child(6n+5) [style*="background: var(--cream-100)"]{background:#FFE8D6!important}
+[style*="display: grid"]>:nth-child(6n) [style*="background: rgb(244, 236, 218)"],[style*="display: grid"]>:nth-child(6n) [style*="background: var(--cream-100)"]{background:#EFE3FF!important}
+[style*="display: grid"]>:nth-child(6n+1) [style*="background: var(--cream-100)"]{background:#FFF3C4!important}
+@media (hover:hover){[style*="display: grid"]>:hover [style*="background: rgb(244, 236, 218)"]{rotate:-6deg}}
+[style*="background:#FBEACB"],[style*="background: rgb(251, 234, 203)"]{border:2px dashed var(--lb-ink)!important;background:#FFF3C4!important}
+
+/* Buttons and pills: chunky and pressable */
 [style*="border-radius:999px"][style*="background:#8C151B"],[style*="border-radius: 999px"][style*="background: rgb(140, 21, 27)"],
 [style*="border-radius:999px"][style*="background:#241A15"],[style*="border-radius: 999px"][style*="background: rgb(36, 26, 21)"],
 [style*="border-radius:999px"][style*="background:#D6A017"],[style*="border-radius: 999px"][style*="background: rgb(214, 160, 23)"],
 [style*="border-radius:999px"][style*="background:#FFFFFF"],[style*="border-radius: 999px"][style*="background: rgb(255, 255, 255)"],
 [style*="border-radius:999px"][style*="border:1px solid #8C151B"],[style*="border-radius: 999px"][style*="border: 1px solid rgb(140, 21, 27)"]{
-  border:2px solid var(--lb-ink)!important;box-shadow:2px 2px 0 var(--lb-ink)!important;transition:transform .12s ease-out,box-shadow .12s ease-out}
+  border:2px solid var(--lb-ink)!important;box-shadow:2px 2px 0 var(--lb-ink)!important;font-weight:800!important;transition:translate .12s ease-out,box-shadow .12s ease-out}
 [style*="border-radius:999px"][style*="background:#D6A017"],[style*="border-radius: 999px"][style*="background: rgb(214, 160, 23)"]{background:var(--lb-g)!important}
-@media (hover:hover){a[style*="border-radius: 999px"]:hover,button[style*="border-radius: 999px"]:hover{transform:translateY(-2px)}}
-a[style*="border-radius: 999px"]:active,button[style*="border-radius: 999px"]:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--lb-ink)!important}
+@media (hover:hover){a[style*="border-radius: 999px"]:hover,button[style*="border-radius: 999px"]:hover{translate:0 -2px}}
+a[style*="border-radius: 999px"]:active,button[style*="border-radius: 999px"]:active{translate:2px 2px;box-shadow:0 0 0 var(--lb-ink)!important}
 
-/* Cards: soft paper-cut shadow instead of a blur, and a small lift on hover */
-[style*="background:#FFFFFF"][style*="box-shadow"],[style*="background: rgb(255, 255, 255)"][style*="box-shadow"],
-[style*="var(--shadow-sm)"]{box-shadow:3px 3px 0 var(--lb-cut)!important;transition:transform .18s ease-out,box-shadow .18s ease-out}
-@media (hover:hover){
-  [style*="display: grid"]>[style*="box-shadow"]:hover,[style*="display: grid"]>a[style*="var(--shadow-sm)"]:hover,
-  [style*="display: grid"]>[style*="var(--shadow-sm)"]:hover{transform:translateY(-3px);box-shadow:5px 6px 0 var(--lb-cut)!important}}
+/* Dividers: dashed trail lines */
+[style*="border-top: 1px solid rgb(240, 230, 208)"],[style*="border-top: 1px solid rgb(231, 219, 190)"],[style*="border-top:1px solid #E7DBBE"]{border-top:2px dashed #D9C6A8!important}
+[style*="border-bottom: 1px solid rgb(231, 219, 190)"],[style*="border-bottom:1px solid #E7DBBE"]{border-bottom:2px dashed #D9C6A8!important}
 
-/* Cards ease in as they scroll into view (theme.js adds lb-in). Short, and never blocks reading. */
+/* Cards ease in as they scroll into view (theme.js adds lb-reveal). Short, and never blocks reading. */
 .lb-reveal{animation:lb-rise .32s ease-out both}
 @keyframes lb-rise{from{opacity:.001;translate:0 10px}to{opacity:1;translate:0 0}}
-
-/* ---------- Homepage only: the full La Bear look ---------- */
-html.lb-home [style*="Work Sans"]{font-family:Nunito,'Work Sans',system-ui,sans-serif!important}
-html.lb-home [style*="Source Serif"]{font-family:Gaegu,'Comic Sans MS',cursive!important;font-weight:700!important;font-style:normal!important;letter-spacing:0!important;font-size-adjust:.44;word-spacing:-.06em}
-html.lb-home h1[style*="Source Serif"]{line-height:1.02!important;text-wrap:balance}
-html.lb-home [style*="background: rgb(255, 255, 255)"][style*="box-shadow"],
-html.lb-home [style*="background:#FFFFFF"][style*="box-shadow"]{border:2.5px solid var(--lb-ink)!important;box-shadow:4px 4px 0 var(--lb-ink)!important;border-radius:20px!important}
-html.lb-home [style*="display: grid"]>[style*="box-shadow"]:nth-child(odd){rotate:-.35deg}
-html.lb-home [style*="display: grid"]>[style*="box-shadow"]:nth-child(even){rotate:.35deg}
-@media (hover:hover){html.lb-home [style*="display: grid"]>[style*="box-shadow"]:hover{rotate:0deg;box-shadow:6px 7px 0 var(--lb-ink)!important}}
-html.lb-home [style*="background: rgb(244, 236, 218)"]{border:2px solid var(--lb-ink)!important;border-radius:14px!important;box-shadow:2px 2px 0 var(--lb-ink)!important;background:#FFF3C4!important;transition:rotate .2s ease-out}
-html.lb-home [style*="display: grid"]>:nth-child(6n+2) [style*="background: rgb(244, 236, 218)"]{background:#DDEBFF!important}
-html.lb-home [style*="display: grid"]>:nth-child(6n+3) [style*="background: rgb(244, 236, 218)"]{background:#FFE0E6!important}
-html.lb-home [style*="display: grid"]>:nth-child(6n+4) [style*="background: rgb(244, 236, 218)"]{background:#DFF3E4!important}
-html.lb-home [style*="display: grid"]>:nth-child(6n+5) [style*="background: rgb(244, 236, 218)"]{background:#FFE8D6!important}
-html.lb-home [style*="display: grid"]>:nth-child(6n) [style*="background: rgb(244, 236, 218)"]{background:#EFE3FF!important}
-@media (hover:hover){html.lb-home [style*="display: grid"]>:hover [style*="background: rgb(244, 236, 218)"]{rotate:-6deg}}
-html.lb-home [style*="border-top: 1px solid rgb(240, 230, 208)"],html.lb-home [style*="border-top: 1px solid rgb(231, 219, 190)"]{border-top:2px dashed #D9C6A8!important}
-html.lb-home [style*="border-radius: 999px"]{font-weight:800!important}
 
 /* The six bears (homepage): pop in one after another, then gently bob */
 .lb-crew{display:flex;gap:12px;flex-wrap:wrap;margin:6px 0 0;align-items:flex-end}
@@ -69,5 +83,5 @@ html.lb-home [style*="border-radius: 999px"]{font-weight:800!important}
 @media (prefers-reduced-motion:reduce){
   .lb-bear,.lb-reveal{animation:none!important}
   *{transition:none!important}
-  html.lb-home [style*="display: grid"]>*{rotate:0deg!important}
+  [style*="display: grid"]>*{rotate:0deg!important}
 }
