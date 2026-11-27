@@ -24,6 +24,8 @@ html:root{
 
 /* Type */
 [style*="Work Sans"]{font-family:Nunito,'Work Sans',system-ui,sans-serif!important}
+/* Headlines: Gaegu only goes up to 700, so thicken the strokes a little for a bolder look */
+[style*="Source Serif"],[style*="var(--font-serif-display)"]{-webkit-text-stroke:.035em currentColor;paint-order:stroke fill}
 [style*="Source Serif"],[style*="var(--font-serif-display)"]{font-family:Gaegu,'Comic Sans MS',cursive!important;font-weight:700!important;font-style:normal!important;letter-spacing:0!important;font-size-adjust:.44;word-spacing:-.06em}
 h1[style*="Source Serif"],h1[style*="var(--font-serif-display)"]{line-height:1.02!important;text-wrap:balance}
 
@@ -73,6 +75,25 @@ a[style*="border-radius: 999px"]:active,button[style*="border-radius: 999px"]:ac
 /* Breadcrumbs: original plain format, in the site's text font, with the links and separators lined up */
 nav[aria-label="Breadcrumb"]{font-family:Nunito,'Work Sans',system-ui,sans-serif!important;align-items:baseline!important;line-height:1.4}
 nav[aria-label="Breadcrumb"] a,nav[aria-label="Breadcrumb"] span{font-family:inherit!important;line-height:inherit}
+
+/* Side navigation panels: bold header, every link a clear button with an arrow, the current page in maroon */
+.ecg-site-sidebar{gap:8px!important;padding:16px 14px!important}
+.ecg-site-sidebar>a[style*="text-transform: uppercase"]{font-weight:900!important;font-size:13px!important;color:var(--lb-ink)!important;
+  padding:2px 4px 10px!important;margin-bottom:2px;border-bottom:2px dashed rgba(43,26,16,.35)}
+.ecg-site-sidebar>a[style*="border-left: 2px solid"]{display:flex!important;align-items:center;justify-content:space-between;gap:10px;min-height:44px;
+  padding:9px 12px!important;background:#fff!important;color:var(--lb-ink)!important;font-weight:700!important;line-height:1.25;
+  border:2px solid var(--lb-ink)!important;border-radius:12px!important;box-shadow:2px 2px 0 var(--lb-ink);
+  transition:translate .12s ease-out,box-shadow .12s ease-out,background-color .12s ease-out}
+.ecg-site-sidebar>a[style*="border-left: 2px solid"]::after{content:"\2192";flex:none;color:var(--lb-m);font-weight:900;transition:translate .12s ease-out}
+@media (hover:hover){
+  .ecg-site-sidebar>a[style*="border-left: 2px solid"]:hover{translate:0 -2px;box-shadow:3px 4px 0 var(--lb-ink);background:var(--lb-g-soft)!important;opacity:1}
+  .ecg-site-sidebar>a[style*="border-left: 2px solid"]:hover::after{translate:3px 0}}
+.ecg-site-sidebar>a[style*="border-left: 2px solid"]:active{translate:2px 2px;box-shadow:0 0 0 var(--lb-ink)}
+.ecg-site-sidebar>a[style*="border-left: 2px solid"]:focus-visible{outline:3px solid var(--lb-m);outline-offset:2px}
+/* the page you are on */
+.ecg-site-sidebar>a[style*="background: rgb(251, 234, 203)"]{background:var(--lb-m)!important;color:#fff!important;font-weight:800!important}
+.ecg-site-sidebar>a[style*="background: rgb(251, 234, 203)"]::after{content:"\25CF";color:var(--lb-g);font-size:11px}
+@media (hover:hover){.ecg-site-sidebar>a[style*="background: rgb(251, 234, 203)"]:hover{background:var(--lb-m)!important}}
 
 /* Cards ease in as they scroll into view (theme.js adds lb-reveal). Short, and never blocks reading. */
 .lb-reveal{animation:lb-rise .32s ease-out both}
