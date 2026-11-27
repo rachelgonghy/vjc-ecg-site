@@ -35,9 +35,12 @@
 
   var tries = 0, iv = setInterval(function () {
     var h1 = document.querySelector('h1');
+    // A few pages write their title as a big serif <div> instead of <h1>: mark the first one so it gets the gold highlight too.
+    var alt = h1 ? null : document.querySelector('div[style*="var(--font-serif-display)"][style*="font-size: 2.25rem"]');
     tries++;
-    if (!h1 && tries < 60) return;
+    if (!h1 && !alt && tries < 60) return;
     clearInterval(iv);
+    var title = h1 || alt; if (title) title.classList.add('lb-title'); // only the first title on the page gets the gold highlight
     watchCards(); setTimeout(watchCards, 1500); // pages that load their lists a little later
     if (home && h1 && !document.querySelector('.lb-crew')) {
       var crew = document.createElement('div'); crew.className = 'lb-crew'; crew.setAttribute('aria-hidden', 'true');

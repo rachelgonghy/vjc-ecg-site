@@ -53,7 +53,7 @@ h1[style*="Source Serif"],h1[style*="var(--font-serif-display)"]{line-height:1.0
 [style*="background:#FBEACB"],[style*="background: rgb(251, 234, 203)"]{border:2px dashed var(--lb-ink)!important;background:var(--lb-g-soft)!important}
 
 /* Page titles get a gold highlighter stroke; cards lift with a maroon shadow */
-h1{text-decoration:underline!important;text-decoration-color:var(--lb-g)!important;text-decoration-thickness:.3em!important;text-underline-offset:-.12em;text-decoration-skip-ink:none}
+.lb-title{text-decoration:underline!important;text-decoration-color:var(--lb-g)!important;text-decoration-thickness:.3em!important;text-underline-offset:-.12em;text-decoration-skip-ink:none}
 
 /* Buttons and pills: chunky and pressable */
 [style*="border-radius:999px"][style*="background:#8C151B"],[style*="border-radius: 999px"][style*="background: rgb(140, 21, 27)"],
